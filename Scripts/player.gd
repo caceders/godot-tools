@@ -1,59 +1,44 @@
 extends Node
 
 enum Direction {
-    DIRECTION_LEFT,
-    DIRECTION_RIGHT,
-} 
+	DIRECTION_LEFT,
+	DIRECTION_RIGHT,
+}
 
-@export var player_entity : TopDownEntity2D
-@export var animated_sprite : AnimatedSprite2D
+@export var player_entity: TopDownEntity2D
+@export var animated_sprite_controller: AnimatedSprite2DController
 
 var _last_movement_direction: Direction = Direction.DIRECTION_LEFT
 
 func _ready():
-    animated_sprite.play("playerIdleLeft")
+	animated_sprite_controller.play_base_animation("playerIdleLeft")
 
 
-func _process(delta):
-    var movement_dir = Input.get_vector("left", "right", "up", "down")
-    player_entity.direction = movement_dir
+func _process(_delta):
+	var movement_direction = Input.get_vector("left", "right", "up", "down")
+	player_entity.direction = movement_direction
 
-    if player_entity.is_moving:
-        if movement_dir.x < 0:
-            _last_movement_direction = Direction.DIRECTION_LEFT
-        if movement_dir.x > 0:
-            _last_movement_direction = Direction.DIRECTION_RIGHT
-    
-    if _is_movement_just_pressed():
-        if _last_movement_direction == Direction.DIRECTION_LEFT:
-            animated_sprite.play("playerWalkLeft")
-        if _last_movement_direction == Direction.DIRECTION_RIGHT:
-            animated_sprite.play("playerWalkRight")
-    
-    elif _is_movement_just_released():
-        if _last_movement_direction == Direction.DIRECTION_LEFT:
-            animated_sprite.play("playerIdleLeft")
-        if _last_movement_direction == Direction.DIRECTION_RIGHT:
-            animated_sprite.play("playerIdleRight")
+	if Input.is_action_pressed("left"):
+		_last_movement_direction = Direction.DIRECTION_LEFT
 
-    if Input.is_action_just_pressed("attack"):
-        if _last_movement_direction == Direction.DIRECTION_LEFT:
-            animated_sprite.play("playerSpellLeft")
-        if _last_movement_direction == Direction.DIRECTION_RIGHT:
-            animated_sprite.play("playerSpellRight")
+	elif Input.is_action_pressed("right"):
+		_last_movement_direction = Direction.DIRECTION_RIGHT
+	
 
-func _is_movement_just_pressed():
-    return (
-        Input.is_action_just_pressed("up") or
-        Input.is_action_just_pressed("down") or
-        Input.is_action_just_pressed("left") or
-        Input.is_action_just_pressed("right")
-        )
+	if _last_movement_direction ==  Direction.DIRECTION_LEFT:
+		if player_entity.is_moving:
+			animated_sprite_controller.play_base_animation("playerWalkLeft")
+		else:
+			animated_sprite_controller.play_base_animation("playerIdleLeft")
 
-func _is_movement_just_released():
-    return (
-        Input.is_action_just_released("up") or
-        Input.is_action_just_released("down") or
-        Input.is_action_just_released("left") or
-        Input.is_action_just_released("right")
-        )
+	if _last_movement_direction ==  Direction.DIRECTION_RIGHT:
+		if player_entity.is_moving:
+			animated_sprite_controller.play_base_animation("playerWalkRight")
+		else:
+			animated_sprite_controller.play_base_animation("playerIdleRight")
+	
+	if Input.is_action_just_pressed("attack"):
+		if _last_movement_direction == Direction.DIRECTION_LEFT:
+			animated_sprite_controller.play_overlay_animation("playerSpellLeft", 1)
+		if _last_movement_direction == Direction.DIRECTION_RIGHT:
+			animated_sprite_controller.play_overlay_animation("playerSpellRight", 1)

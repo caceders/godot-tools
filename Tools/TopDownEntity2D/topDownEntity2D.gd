@@ -6,7 +6,7 @@ class_name TopDownEntity2D extends CharacterBody2D
 # region constants
 ## Ignore impulses with vector length under the floor
 const IMPULSE_FLOOR = .1
-const VELOCITY_FLOOR = .1
+const VELOCITY_FLOOR = .3
 # endregion
 
 
