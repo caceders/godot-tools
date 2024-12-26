@@ -4,7 +4,7 @@ const MIN_STILL_TIME = .5
 const MAX_STILL_TIME = 20
 const MAX_STRAFE_RADIUS = 50
 const ACCEPTABLE_DISTANCE_TO_STRAFE_POSITION = 1
-const CHARGE_TIME = .5
+const CHARGE_ATTACK_TIME = .5
 
 enum State {IDLE,
             STRAFING,
@@ -30,7 +30,7 @@ enum Direction {
 var _target: Node2D
 
 var _stand_still_timer : Timer
-var _charge_timer : Timer
+var _charge_attack_timer : Timer
 var _active_state = State.IDLE
 var _last_movement_direction = Direction.LEFT
 
@@ -41,9 +41,9 @@ func _ready():
     _stand_still_timer.one_shot = true
     add_child(_stand_still_timer)
 
-    _charge_timer = Timer.new()
-    _charge_timer.one_shot = true
-    add_child(_charge_timer)
+    _charge_attack_timer = Timer.new()
+    _charge_attack_timer.one_shot = true
+    add_child(_charge_attack_timer)
 
     animated_sprite_controller.play_base_animation("enemyIdleLeft")
 
@@ -99,13 +99,13 @@ func _process(_delta):
             if not _target_in_attack_range():
                 enter_state(State.HUNTING)
                 return
-            if _charge_timer.time_left == 0:
+            if _charge_attack_timer.time_left == 0:
                 enter_state(State.ATTACKING)
             var vector_to_target = _get_vector_to_target()
             if vector_to_target.x < 0:
-                animated_sprite_controller.play_base_animation("enemyChargeLeft")
+                animated_sprite_controller.play_base_animation("enemycharge_attackLeft")
             else:
-                animated_sprite_controller.play_base_animation("enemyChargeRight")
+                animated_sprite_controller.play_base_animation("enemycharge_attackRight")
             return
                 
             
@@ -150,7 +150,7 @@ func enter_state(state: State):
             
         State.CHARGING:
             entity.direction = Vector2(0,0)
-            _charge_timer.start(CHARGE_TIME)
+            _charge_attack_timer.start(CHARGE_ATTACK_TIME)
             return
             
         State.ATTACKING:
