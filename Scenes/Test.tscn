@@ -10,4 +10,4 @@
 [node name="Camera2D" type="Camera2D" parent="Player"]
 
 [node name="Enemy" parent="." instance=ExtResource("2_ufi7k")]
-position = Vector2(17, 18)
+position = Vector2(44.88, 0)

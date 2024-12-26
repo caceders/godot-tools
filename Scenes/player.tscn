@@ -7,6 +7,9 @@
 [ext_resource type="Script" path="res://Tools/AnimatedSprite2DController/animatedSprite2DController.gd" id="5_8s35r"]
 [ext_resource type="Script" path="res://Scripts/player.gd" id="5_v07jb"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q83v7"]
+size = Vector2(7, 7)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_t5c85"]
 atlas = ExtResource("2_y1qmj")
 region = Rect2(0, 32, 32, 32)
@@ -264,22 +267,19 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_q83v7"]
-size = Vector2(7, 7)
+[node name="Player" type="Node2D" node_paths=PackedStringArray("player_entity", "animated_sprite_controller")]
+script = ExtResource("5_v07jb")
+player_entity = NodePath("Player")
+animated_sprite_controller = NodePath("Player/AnimatedSprite2DController")
 
-[node name="Player" type="CharacterBody2D" groups=["Player"]]
+[node name="Player" type="CharacterBody2D" parent="." groups=["Player"]]
 script = ExtResource("1_yljs5")
 
-[node name="Player" type="Node" parent="." node_paths=PackedStringArray("player_entity", "animated_sprite_controller")]
-script = ExtResource("5_v07jb")
-player_entity = NodePath("..")
-animated_sprite_controller = NodePath("../AnimatedSprite2DController")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+position = Vector2(0.5, -0.5)
+shape = SubResource("RectangleShape2D_q83v7")
 
-[node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="Player"]
 sprite_frames = SubResource("SpriteFrames_0ht1w")
 animation = &"playerIdleLeft"
 script = ExtResource("5_8s35r")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0.5, -0.5)
-shape = SubResource("RectangleShape2D_q83v7")

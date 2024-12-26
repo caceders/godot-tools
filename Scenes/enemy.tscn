@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://41mx43s80knk"]
+[gd_scene load_steps=45 format=3 uid="uid://41mx43s80knk"]
 
 [ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_wakf3"]
 [ext_resource type="Script" path="res://enemy.gd" id="2_ltvqw"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://fgnfqglvb0ua" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Idle.png" id="4_m82ky"]
 [ext_resource type="Texture2D" uid="uid://bs1soxc80itm4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Walk.png" id="5_r154k"]
 [ext_resource type="Script" path="res://Tools/AnimatedSprite2DController/animatedSprite2DController.gd" id="6_cjwk8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gvesa"]
+size = Vector2(8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jnyjk"]
 atlas = ExtResource("3_xaou8")
@@ -292,29 +295,37 @@ animations = [{
 radius = 106.042
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_6achk"]
-radius = 18.0278
+radius = 9.0
 
-[node name="Enemy" type="CharacterBody2D"]
-script = ExtResource("1_wakf3")
-
-[node name="Enemy" type="Node" parent="." node_paths=PackedStringArray("entity", "animated_sprite_controller", "detection_area", "attack_area")]
+[node name="Enemy" type="Node2D" node_paths=PackedStringArray("entity", "animated_sprite_controller", "detection_area", "attack_area")]
 script = ExtResource("2_ltvqw")
-entity = NodePath("..")
-animated_sprite_controller = NodePath("../AnimatedSprite2DController")
-detection_area = NodePath("../DetectionArea")
-attack_area = NodePath("../AttackArea")
+entity = NodePath("Enemy")
+animated_sprite_controller = NodePath("Enemy/AnimatedSprite2DController")
+detection_area = NodePath("Enemy/DetectionArea")
+attack_area = NodePath("Enemy/AttackArea")
+target_groups = Array[String](["Player"])
 
-[node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="."]
+[node name="Enemy" type="CharacterBody2D" parent="."]
+script = ExtResource("1_wakf3")
+speed = 20.0
+
+[node name="HitBox" type="CollisionShape2D" parent="Enemy"]
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_gvesa")
+
+[node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="Enemy"]
 sprite_frames = SubResource("SpriteFrames_2l87c")
-animation = &"enemyAttackRight"
+animation = &"enemyAttackLeft"
+frame = 3
+frame_progress = 1.0
 script = ExtResource("6_cjwk8")
 
-[node name="DetectionArea" type="Area2D" parent="."]
+[node name="DetectionArea" type="Area2D" parent="Enemy"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/DetectionArea"]
 shape = SubResource("CircleShape2D_f8p6b")
 
-[node name="AttackArea" type="Area2D" parent="."]
+[node name="AttackArea" type="Area2D" parent="Enemy"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/AttackArea"]
 shape = SubResource("CircleShape2D_6achk")

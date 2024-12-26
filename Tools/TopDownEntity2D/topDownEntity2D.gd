@@ -53,7 +53,7 @@ func _physics_process(delta_time):
 # region public methods
 ## Teleports the entity to the target position
 func teleport(p_position: Vector2):
-	position = p_position
+	global_position = p_position
 
 
 ## Adds an impulse to the entity
