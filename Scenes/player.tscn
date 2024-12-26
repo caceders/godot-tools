@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://cdivytsoyrfk3"]
+[gd_scene load_steps=41 format=3 uid="uid://cdivytsoyrfk3"]
 
 [ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_yljs5"]
 [ext_resource type="Texture2D" uid="uid://d1cqd567c4p3u" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Idle.png" id="2_y1qmj"]
@@ -264,7 +264,10 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Player" type="CharacterBody2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q83v7"]
+size = Vector2(7, 7)
+
+[node name="Player" type="CharacterBody2D" groups=["Player"]]
 script = ExtResource("1_yljs5")
 
 [node name="Player" type="Node" parent="." node_paths=PackedStringArray("player_entity", "animated_sprite_controller")]
@@ -274,5 +277,9 @@ animated_sprite_controller = NodePath("../AnimatedSprite2DController")
 
 [node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_0ht1w")
-animation = &"playerSpellLeft"
+animation = &"playerIdleLeft"
 script = ExtResource("5_8s35r")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0.5, -0.5)
+shape = SubResource("RectangleShape2D_q83v7")

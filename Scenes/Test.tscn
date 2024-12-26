@@ -1,16 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://b3css1fymngw"]
+[gd_scene load_steps=3 format=3 uid="uid://b3css1fymngw"]
 
-[ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_ufdjk"]
-[ext_resource type="Texture2D" uid="uid://b0rlignp86kg4" path="res://icon.svg" id="2_lun4h"]
-[ext_resource type="Script" path="res://Scenes/test.gd" id="3_c1c56"]
+[ext_resource type="PackedScene" uid="uid://cdivytsoyrfk3" path="res://Scenes/player.tscn" id="1_kmdm5"]
+[ext_resource type="PackedScene" uid="uid://41mx43s80knk" path="res://Scenes/enemy.tscn" id="2_ufi7k"]
 
-[node name="TopDownEntity2D" type="CharacterBody2D"]
-script = ExtResource("1_ufdjk")
+[node name="Node2D" type="Node2D"]
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(455, 298)
-texture = ExtResource("2_lun4h")
+[node name="Player" parent="." instance=ExtResource("1_kmdm5")]
 
-[node name="Test" type="Node" parent="." node_paths=PackedStringArray("entity")]
-script = ExtResource("3_c1c56")
-entity = NodePath("..")
+[node name="Camera2D" type="Camera2D" parent="Player"]
+
+[node name="Enemy" parent="." instance=ExtResource("2_ufi7k")]
+position = Vector2(17, 18)
