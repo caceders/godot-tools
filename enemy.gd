@@ -26,6 +26,7 @@ enum Direction {
 @export var detection_area: Area2D
 @export var attack_area: Area2D
 @export var target_groups: Array[String]
+@export var health: ResourcePool
 
 var _target: Node2D
 
@@ -52,14 +53,22 @@ func _process(_delta):
 
     match _active_state:
         State.IDLE:
+            if health.amount == 0:
+                enter_state(State.DYING)
+                return
             if _target_in_sight():
                 enter_state(State.HUNTING)
                 return
-            elif _stand_still_timer.time_left == 0:
+            if _stand_still_timer.time_left == 0:
                 enter_state(State.STRAFING)
+                return
             return
                 
         State.STRAFING:
+
+            if health.amount == 0:
+                enter_state(State.DYING)
+                return
 
             if _target_in_sight():
                 enter_state(State.HUNTING)
@@ -80,12 +89,19 @@ func _process(_delta):
             return
 
         State.HUNTING:
+            
+            if health.amount == 0:
+                enter_state(State.DYING)
+                return
+
             if not _target_in_sight():
                 enter_state(State.IDLE)
                 return
+
             if _target_in_attack_range():
                 enter_state(State.CHARGING)
                 return
+
             entity.direction = (_target.global_position - entity.global_position)
             if entity.direction.x < 0:
                 animated_sprite_controller.play_base_animation("enemyWalkLeft")
@@ -96,28 +112,40 @@ func _process(_delta):
             return
             
         State.CHARGING:
+
+            if health.amount == 0:
+                enter_state(State.DYING)
+                return
+
             if not _target_in_attack_range():
                 enter_state(State.HUNTING)
                 return
+
             if _charge_attack_timer.time_left == 0:
                 enter_state(State.ATTACKING)
             var vector_to_target = _get_vector_to_target()
             if vector_to_target.x < 0:
-                animated_sprite_controller.play_base_animation("enemycharge_attackLeft")
+                animated_sprite_controller.play_base_animation("enemyChargeAttackLeft")
             else:
-                animated_sprite_controller.play_base_animation("enemycharge_attackRight")
+                animated_sprite_controller.play_base_animation("enemyChargeAttackRight")
             return
                 
             
         State.ATTACKING:
+            
+            if health.amount == 0:
+                enter_state(State.DYING)
+                return
+
             enter_state(State.CHARGING)
             return
             
         State.DYING:
-            pass
+            enter_state(State.DEAD)
+            return
             
         State.DEAD:
-            pass
+            animated_sprite_controller.play_base_animation("enemyDead")
             
 
 
@@ -162,7 +190,7 @@ func enter_state(state: State):
             return
             
         State.DYING:
-            pass
+            animated_sprite_controller.play_overlay_animation("enemyDie", 1)
             
         State.DEAD:
             entity.direction = Vector2(0,0)

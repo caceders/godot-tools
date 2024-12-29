@@ -1,11 +1,13 @@
-[gd_scene load_steps=45 format=3 uid="uid://41mx43s80knk"]
+[gd_scene load_steps=55 format=3 uid="uid://41mx43s80knk"]
 
 [ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_wakf3"]
 [ext_resource type="Script" path="res://enemy.gd" id="2_ltvqw"]
 [ext_resource type="Texture2D" uid="uid://cdsnhimxta5x8" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Attack.png" id="3_xaou8"]
 [ext_resource type="Texture2D" uid="uid://fgnfqglvb0ua" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Idle.png" id="4_m82ky"]
+[ext_resource type="Texture2D" uid="uid://dj0gvn8tgwdfd" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Die.png" id="4_u3s1v"]
 [ext_resource type="Texture2D" uid="uid://bs1soxc80itm4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Walk.png" id="5_r154k"]
 [ext_resource type="Script" path="res://Tools/AnimatedSprite2DController/animatedSprite2DController.gd" id="6_cjwk8"]
+[ext_resource type="Script" path="res://Scripts/resourcePool.gd" id="7_khojr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gvesa"]
 size = Vector2(8, 8)
@@ -49,6 +51,38 @@ region = Rect2(0, 32, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_grdux"]
 atlas = ExtResource("3_xaou8")
 region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jtvdp"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rtnld"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rvnsp"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vs8sq"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_018yj"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atf6u"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7duse"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fq257"]
+atlas = ExtResource("4_u3s1v")
+region = Rect2(192, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7atbg"]
 atlas = ExtResource("4_m82ky")
@@ -187,7 +221,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_c0481")
 }],
 "loop": true,
-"name": &"enemyChargeLeft",
+"name": &"enemyChargeAttackLeft",
 "speed": 2.0
 }, {
 "frames": [{
@@ -195,8 +229,42 @@ animations = [{
 "texture": SubResource("AtlasTexture_grdux")
 }],
 "loop": true,
-"name": &"enemyChargeRight",
+"name": &"enemyChargeAttackRight",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jtvdp")
+}],
+"loop": true,
+"name": &"enemyDead",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rtnld")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rvnsp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vs8sq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_018yj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atf6u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7duse")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fq257")
+}],
+"loop": false,
+"name": &"enemyDie",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -297,13 +365,14 @@ radius = 106.042
 [sub_resource type="CircleShape2D" id="CircleShape2D_6achk"]
 radius = 9.0
 
-[node name="Enemy" type="Node2D" node_paths=PackedStringArray("entity", "animated_sprite_controller", "detection_area", "attack_area")]
+[node name="Enemy" type="Node2D" node_paths=PackedStringArray("entity", "animated_sprite_controller", "detection_area", "attack_area", "health")]
 script = ExtResource("2_ltvqw")
 entity = NodePath("Enemy")
 animated_sprite_controller = NodePath("Enemy/AnimatedSprite2DController")
 detection_area = NodePath("Enemy/DetectionArea")
 attack_area = NodePath("Enemy/AttackArea")
 target_groups = Array[String](["Player"])
+health = NodePath("Health")
 
 [node name="Enemy" type="CharacterBody2D" parent="."]
 script = ExtResource("1_wakf3")
@@ -315,9 +384,7 @@ shape = SubResource("RectangleShape2D_gvesa")
 
 [node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="Enemy"]
 sprite_frames = SubResource("SpriteFrames_2l87c")
-animation = &"enemyAttackLeft"
-frame = 3
-frame_progress = 1.0
+animation = &"enemyChargeAttackLeft"
 script = ExtResource("6_cjwk8")
 
 [node name="DetectionArea" type="Area2D" parent="Enemy"]
@@ -329,3 +396,6 @@ shape = SubResource("CircleShape2D_f8p6b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/AttackArea"]
 shape = SubResource("CircleShape2D_6achk")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("7_khojr")
