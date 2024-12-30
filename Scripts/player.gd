@@ -2,8 +2,10 @@ extends Node
 
 const ATTACK_DURATION = .2
 const ATTACK_INTERVAL_TIME = .5
+const FLSH_LERP_WEIGHT = 15
 
 enum State {PASSIVE,
+			INVINSIBLE,
 			ATTACKING,
 			HURT,
 			DYING,
@@ -17,7 +19,7 @@ enum Direction {
 
 
 @export var player_entity: TopDownEntity2D
-@export var animated_sprite_controller: AnimatedSprite2DController
+@export var animation_player_controller: AnimationPlayerController
 @export var attack_area_left: Area2D
 @export var attack_area_right: Area2D
 @export var health: ResourcePool
@@ -25,12 +27,14 @@ enum Direction {
 var _attack_interval_timer : Timer
 var _attack_duration_timer : Timer
 var _active_state = State.PASSIVE
-var _attack_target  : Node2D
+var _attack_target: Node2D
 
 var _last_movement_direction: Direction = Direction.LEFT
 
+var _damaged_flag: bool = false
+
 func _ready():
-	animated_sprite_controller.play_base_animation("playerIdleLeft")
+	animation_player_controller.play_base_animation("playerIdleLeft")
 
 	_attack_interval_timer = Timer.new()
 	_attack_interval_timer.one_shot = true
@@ -47,12 +51,24 @@ func _process(_delta):
 	match _active_state:
 		State.PASSIVE:
 			_move_around()
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			if Input.is_action_just_pressed("attack") and _attack_interval_timer.time_left == 0:
 				enter_state(State.ATTACKING)
+				return
+			return
+		State.HURT:
+			enter_state(State.PASSIVE)
+		State.INVINSIBLE:
 			return
 		State.ATTACKING:
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			if _attack_duration_timer.time_left == 0:
 				enter_state(State.PASSIVE)
+				return
 			return
 		State.DYING:
 			return
@@ -66,17 +82,23 @@ func enter_state(state: State):
 	match _active_state:
 		State.PASSIVE:
 			return
+		State.HURT:
+			if _last_movement_direction == Direction.LEFT:
+				animation_player_controller.play_overlay_animation("playerHurtLeft", 1)
+			if _last_movement_direction == Direction.RIGHT:
+				animation_player_controller.play_overlay_animation("playerHurtRight", 1)
+			_damaged_flag = false
+		State.INVINSIBLE:
+			return
 		State.ATTACKING:
 			player_entity.direction = Vector2.ZERO
 			_attack_interval_timer.start(ATTACK_INTERVAL_TIME)
 			_attack_duration_timer.start(ATTACK_DURATION)
 
 			if _last_movement_direction == Direction.LEFT:
-				animated_sprite_controller.play_overlay_animation("playerAttackLeft", 1)
-				return
+				animation_player_controller.play_overlay_animation("playerAttackLeft", 1)
 			if _last_movement_direction == Direction.RIGHT:
-				animated_sprite_controller.play_overlay_animation("playerAttackRight", 1)
-				return
+				animation_player_controller.play_overlay_animation("playerAttackRight", 1)
 			return
 		State.DYING:
 			return
@@ -108,12 +130,18 @@ func _move_around():
 
 	if _last_movement_direction ==  Direction.LEFT:
 		if player_entity.is_moving:
-			animated_sprite_controller.play_base_animation("playerWalkLeft")
+			animation_player_controller.play_base_animation("playerWalkLeft")
 		else:
-			animated_sprite_controller.play_base_animation("playerIdleLeft")
+			animation_player_controller.play_base_animation("playerIdleLeft")
 
 	if _last_movement_direction ==  Direction.RIGHT:
 		if player_entity.is_moving:
-			animated_sprite_controller.play_base_animation("playerWalkRight")
+			animation_player_controller.play_base_animation("playerWalkRight")
 		else:
-			animated_sprite_controller.play_base_animation("playerIdleRight")
+			animation_player_controller.play_base_animation("playerIdleRight")
+
+func _flash(delta_time):
+	animation_player_controller.modulate.a = lerp(animation_player_controller.modulate.a, 0, 1 - exp(delta_time * -FLSH_LERP_WEIGHT))
+
+func _on_damage_received(_amount):
+	_damaged_flag = true

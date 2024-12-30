@@ -1,616 +1,612 @@
-[gd_scene load_steps=55 format=3 uid="uid://41mx43s80knk"]
+[gd_scene load_steps=23 format=3 uid="uid://41mx43s80knk"]
 
+[ext_resource type="Script" path="res://Scripts/enemy.gd" id="1_ov72j"]
 [ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_wakf3"]
-[ext_resource type="Texture2D" uid="uid://cdsnhimxta5x8" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Attack.png" id="3_xaou8"]
-[ext_resource type="Texture2D" uid="uid://fgnfqglvb0ua" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Idle.png" id="4_m82ky"]
-[ext_resource type="Texture2D" uid="uid://dj0gvn8tgwdfd" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Die.png" id="4_u3s1v"]
-[ext_resource type="Texture2D" uid="uid://bs1soxc80itm4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Walk.png" id="5_r154k"]
-[ext_resource type="Script" path="res://Tools/AnimatedSprite2DController/animatedSprite2DController.gd" id="6_cjwk8"]
-[ext_resource type="Script" path="res://Scripts/resourcePool.gd" id="7_khojr"]
-
-[sub_resource type="GDScript" id="GDScript_wox7b"]
-script/source = "extends Node
-
-const MIN_STILL_TIME = .5
-const MAX_STILL_TIME = 20
-const MAX_STRAFE_RADIUS = 50
-const ACCEPTABLE_DISTANCE_TO_STRAFE_POSITION = 1
-const CHARGE_ATTACK_TIME = .5
-
-enum State {IDLE,
-			STRAFING,
-			HUNTING,
-			CHARGING,
-			ATTACKING,
-			DYING,
-			DEAD,
-}
-
-
-enum Direction {
-			LEFT,
-			RIGHT,
-}
-
-@export var entity: TopDownEntity2D
-@export var animated_sprite_controller : AnimatedSprite2DController
-@export var detection_area: Area2D
-@export var attack_area: Area2D
-@export var target_groups: Array[String]
-@export var health: ResourcePool
-
-var _target: Node2D
-
-var _stand_still_timer : Timer
-var _charge_attack_timer : Timer
-var _active_state = State.IDLE
-var _last_movement_direction = Direction.LEFT
-
-var _strafe_position : Vector2
-
-func _ready():
-	_stand_still_timer = Timer.new()
-	_stand_still_timer.one_shot = true
-	add_child(_stand_still_timer)
-
-	_charge_attack_timer = Timer.new()
-	_charge_attack_timer.one_shot = true
-	add_child(_charge_attack_timer)
-
-	animated_sprite_controller.play_base_animation(\"enemyIdleLeft\")
-
-
-func _process(_delta):
-
-	match _active_state:
-		State.IDLE:
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-			if _target_in_sight():
-				enter_state(State.HUNTING)
-				return
-			if _stand_still_timer.time_left == 0:
-				enter_state(State.STRAFING)
-				return
-			return
-				
-		State.STRAFING:
-
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-
-			if _target_in_sight():
-				enter_state(State.HUNTING)
-				return
-
-			var vector_to_strafe_position = _strafe_position - entity.global_position
-			entity.direction = vector_to_strafe_position.normalized()
-
-			if entity.direction.x < 0:
-				animated_sprite_controller.play_base_animation(\"enemyWalkLeft\")
-				_last_movement_direction = Direction.LEFT
-			else:
-				animated_sprite_controller.play_base_animation(\"enemyWalkRight\")
-				_last_movement_direction = Direction.RIGHT
-
-			if vector_to_strafe_position.length() < ACCEPTABLE_DISTANCE_TO_STRAFE_POSITION:
-				enter_state(State.IDLE)
-			return
-
-		State.HUNTING:
-			
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-
-			if not _target_in_sight():
-				enter_state(State.IDLE)
-				return
-
-			if _target_in_attack_range():
-				enter_state(State.CHARGING)
-				return
-
-			entity.direction = (_target.global_position - entity.global_position)
-			if entity.direction.x < 0:
-				animated_sprite_controller.play_base_animation(\"enemyWalkLeft\")
-				_last_movement_direction = Direction.LEFT
-			else:
-				animated_sprite_controller.play_base_animation(\"enemyWalkRight\")
-				_last_movement_direction = Direction.RIGHT
-			return
-			
-		State.CHARGING:
-
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-
-			if not _target_in_attack_range():
-				enter_state(State.HUNTING)
-				return
-
-			if _charge_attack_timer.time_left == 0:
-				enter_state(State.ATTACKING)
-			var vector_to_target = _get_vector_to_target()
-			if vector_to_target.x < 0:
-				animated_sprite_controller.play_base_animation(\"enemyChargeAttackLeft\")
-			else:
-				animated_sprite_controller.play_base_animation(\"enemyChargeAttackRight\")
-			return
-				
-			
-		State.ATTACKING:
-			
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-
-			enter_state(State.CHARGING)
-			return
-			
-		State.DYING:
-			enter_state(State.DEAD)
-			return
-			
-		State.DEAD:
-			animated_sprite_controller.play_base_animation(\"enemyDead\")
-			
-
-
-func enter_state(state: State):
-
-	exit_state(_active_state)
-	_active_state = state
-
-	match state:
-		State.IDLE:
-
-			entity.direction = Vector2.ZERO
-
-			if _last_movement_direction == Direction.LEFT:
-				animated_sprite_controller.play_base_animation(\"enemyIdleLeft\")
-			if _last_movement_direction == Direction.RIGHT:
-				animated_sprite_controller.play_base_animation(\"enemyIdleRight\")
-			_stand_still_timer.start(randf_range(MIN_STILL_TIME, MAX_STILL_TIME))
-			_stand_still_timer.paused = false
-			return
-			
-		State.STRAFING:
-			# Pick a random spot nearby and walk to
-			var strafe_direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
-			_strafe_position = strafe_direction * randf_range(0, MAX_STRAFE_RADIUS)
-			return
-			
-		State.HUNTING:
-			pass
-			
-		State.CHARGING:
-			entity.direction = Vector2(0,0)
-			_charge_attack_timer.start(CHARGE_ATTACK_TIME)
-			return
-			
-		State.ATTACKING:
-			var vector_to_target = _get_vector_to_target()
-			if vector_to_target.x < 0:
-				animated_sprite_controller.play_overlay_animation(\"enemyAttackLeft\", 1)
-			else:
-				animated_sprite_controller.play_overlay_animation(\"enemyAttackRight\", 1)
-			return
-			
-		State.DYING:
-			animated_sprite_controller.play_overlay_animation(\"enemyDie\", 1)
-			
-		State.DEAD:
-			entity.direction = Vector2(0,0)
-			return
-			
-
-
-func exit_state(state: State):
-	match state:
-		State.IDLE:
-			pass
-			
-		State.STRAFING:
-			pass
-			
-		State.HUNTING:
-			_target = null
-			return
-			
-		State.CHARGING:
-			pass
-			
-		State.ATTACKING:
-			pass
-			
-		State.DYING:
-			pass
-			
-		State.DEAD:
-			pass
-
-
-func _body_is_target(body: Node2D):
-	var groups = body.get_groups()
-	for group in groups:
-		if group in target_groups:
-			return true
-	return false
-
-func _target_in_sight():
-	var bodies_in_sight = detection_area.get_overlapping_bodies()
-	for body in bodies_in_sight:
-		if _body_is_target(body):
-			_target = body
-			return true
-	return false
-
-
-func _target_in_attack_range():
-	var bodies_in_sight = attack_area.get_overlapping_bodies()
-	for body in bodies_in_sight:
-		if _body_is_target(body):
-			_target = body
-			return true
-	return false
-
-func _get_vector_to_target():
-	return (_target.global_position - entity.global_position)
-"
+[ext_resource type="Texture2D" uid="uid://bs1soxc80itm4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Walk.png" id="2_mocu0"]
+[ext_resource type="Script" path="res://Tools/AnimationPlayerController/animationPlayerController.gd" id="2_ss68n"]
+[ext_resource type="Texture2D" uid="uid://fgnfqglvb0ua" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Idle.png" id="3_p2x04"]
+[ext_resource type="Texture2D" uid="uid://cdsnhimxta5x8" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Attack.png" id="4_dbmgj"]
+[ext_resource type="Texture2D" uid="uid://dj0gvn8tgwdfd" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Die.png" id="5_ryql0"]
+[ext_resource type="Script" path="res://Tools/DamageSystem/damageReceiver.gd" id="7_gfm1v"]
+[ext_resource type="Script" path="res://Tools/DamageSystem/damagaDealer.gd" id="9_docgn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gvesa"]
 size = Vector2(8, 8)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_jnyjk"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(0, 32, 32, 32)
+[sub_resource type="Animation" id="Animation_spnwc"]
+resource_name = "enemyWalkLeft"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("2_mocu0")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [4, 5, 6, 7]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 1)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_exaw1"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(32, 32, 32, 32)
+[sub_resource type="Animation" id="Animation_wiey0"]
+resource_name = "enemyWalkRight"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("2_mocu0")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_6jtja"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(64, 32, 32, 32)
+[sub_resource type="Animation" id="Animation_qvw4o"]
+resource_name = "enemyIdleLeft"
+length = 6.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_p2x04")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [16]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8, 1.2, 1.6, 2, 2.4, 2.8, 3.2, 3.6, 4, 4.4, 4.8, 5.2, 5.6, 6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 1)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_lx4yx"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(96, 32, 32, 32)
+[sub_resource type="Animation" id="Animation_855y3"]
+resource_name = "enemyIdleRight"
+length = 6.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_p2x04")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [16]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8, 1.2, 1.6, 2, 2.4, 2.8, 3.2, 3.6, 4, 4.4, 4.8, 5.2, 5.6, 6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ukunl"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(0, 0, 32, 32)
+[sub_resource type="Animation" id="Animation_j88ef"]
+resource_name = "enemyChargeAttackLeft"
+length = 1.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_dbmgj")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 1)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_8gl1l"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(32, 0, 32, 32)
+[sub_resource type="Animation" id="Animation_ggedd"]
+resource_name = "enemyChargeAttackRight"
+length = 1.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_dbmgj")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_56gvr"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(64, 0, 32, 32)
+[sub_resource type="Animation" id="Animation_eda65"]
+resource_name = "enemyAttackRight"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_dbmgj")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_q5k7b"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(96, 0, 32, 32)
+[sub_resource type="Animation" id="Animation_kpg8u"]
+resource_name = "enemyAttackLeft"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_dbmgj")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [4, 5, 6, 7]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_c0481"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(0, 32, 32, 32)
+[sub_resource type="Animation" id="Animation_fru08"]
+resource_name = "enemyDie"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("5_ryql0")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [12]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5, 6]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_grdux"]
-atlas = ExtResource("3_xaou8")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_jtvdp"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(192, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_rtnld"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_rvnsp"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_vs8sq"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(64, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_018yj"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(96, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_atf6u"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(128, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7duse"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(160, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fq257"]
-atlas = ExtResource("4_u3s1v")
-region = Rect2(192, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7atbg"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(0, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_13058"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(32, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_w5pqu"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(64, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_x5al1"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(96, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_anjmn"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(128, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_wgdum"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(160, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1b035"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(192, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_gcyo3"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(224, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_l35n3"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_o37f8"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_dhjpg"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(64, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_q65k6"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(96, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_v6t2g"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(128, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_asiq8"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(160, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_45kyd"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(192, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_rcusa"]
-atlas = ExtResource("4_m82ky")
-region = Rect2(224, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_gr1pf"]
-atlas = ExtResource("5_r154k")
-region = Rect2(0, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_d06uv"]
-atlas = ExtResource("5_r154k")
-region = Rect2(32, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_v5hft"]
-atlas = ExtResource("5_r154k")
-region = Rect2(64, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_kkhir"]
-atlas = ExtResource("5_r154k")
-region = Rect2(96, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_02chy"]
-atlas = ExtResource("5_r154k")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_8mub1"]
-atlas = ExtResource("5_r154k")
-region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ishkm"]
-atlas = ExtResource("5_r154k")
-region = Rect2(64, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_enjqd"]
-atlas = ExtResource("5_r154k")
-region = Rect2(96, 0, 32, 32)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_2l87c"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_jnyjk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_exaw1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_6jtja")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_lx4yx")
-}],
-"loop": false,
-"name": &"enemyAttackLeft",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ukunl")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_8gl1l")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_56gvr")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_q5k7b")
-}],
-"loop": false,
-"name": &"enemyAttackRight",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_c0481")
-}],
-"loop": true,
-"name": &"enemyChargeAttackLeft",
-"speed": 2.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_grdux")
-}],
-"loop": true,
-"name": &"enemyChargeAttackRight",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_jtvdp")
-}],
-"loop": true,
-"name": &"enemyDead",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_rtnld")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_rvnsp")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_vs8sq")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_018yj")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_atf6u")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7duse")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fq257")
-}],
-"loop": false,
-"name": &"enemyDie",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7atbg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_13058")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_w5pqu")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_x5al1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_anjmn")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_wgdum")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1b035")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_gcyo3")
-}],
-"loop": true,
-"name": &"enemyIdleLeft",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_l35n3")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_o37f8")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_dhjpg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_q65k6")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v6t2g")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_asiq8")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_45kyd")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_rcusa")
-}],
-"loop": true,
-"name": &"enemyIdleRight",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_gr1pf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_d06uv")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v5hft")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_kkhir")
-}],
-"loop": true,
-"name": &"enemyWalkLeft",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_02chy")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_8mub1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ishkm")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_enjqd")
-}],
-"loop": true,
-"name": &"enemyWalkRight",
-"speed": 5.0
-}]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_x38jw"]
+_data = {
+"enemyAttackLeft": SubResource("Animation_kpg8u"),
+"enemyAttackRight": SubResource("Animation_eda65"),
+"enemyChargeAttackLeft": SubResource("Animation_j88ef"),
+"enemyChargeAttackRight": SubResource("Animation_ggedd"),
+"enemyDie": SubResource("Animation_fru08"),
+"enemyIdleLeft": SubResource("Animation_qvw4o"),
+"enemyIdleRight": SubResource("Animation_855y3"),
+"enemyWalkLeft": SubResource("Animation_spnwc"),
+"enemyWalkRight": SubResource("Animation_wiey0")
+}
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_f8p6b"]
 radius = 106.042
@@ -618,14 +614,15 @@ radius = 106.042
 [sub_resource type="CircleShape2D" id="CircleShape2D_6achk"]
 radius = 9.0
 
-[node name="Enemy" type="Node2D" node_paths=PackedStringArray("entity", "animated_sprite_controller", "detection_area", "attack_area", "health")]
-script = SubResource("GDScript_wox7b")
+[node name="Enemy" type="Node2D" node_paths=PackedStringArray("entity", "animation_player_controller", "detection_area", "attack_area", "health", "damage_dealer")]
+script = ExtResource("1_ov72j")
 entity = NodePath("Enemy")
-animated_sprite_controller = NodePath("Enemy/AnimatedSprite2DController")
+animation_player_controller = NodePath("Enemy/AnimationPlayerController")
 detection_area = NodePath("Enemy/DetectionArea")
 attack_area = NodePath("Enemy/AttackArea")
 target_groups = Array[String](["Player"])
-health = NodePath("Health")
+health = NodePath("Enemy/DamageReceiver")
+damage_dealer = NodePath("Enemy/DamageDealer")
 
 [node name="Enemy" type="CharacterBody2D" parent="." groups=["Attackable"]]
 script = ExtResource("1_wakf3")
@@ -635,10 +632,11 @@ speed = 20.0
 position = Vector2(0, -1)
 shape = SubResource("RectangleShape2D_gvesa")
 
-[node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="Enemy"]
-sprite_frames = SubResource("SpriteFrames_2l87c")
-animation = &"enemyChargeAttackLeft"
-script = ExtResource("6_cjwk8")
+[node name="AnimationPlayerController" type="AnimationPlayer" parent="Enemy"]
+libraries = {
+"": SubResource("AnimationLibrary_x38jw")
+}
+script = ExtResource("2_ss68n")
 
 [node name="DetectionArea" type="Area2D" parent="Enemy"]
 
@@ -650,5 +648,13 @@ shape = SubResource("CircleShape2D_f8p6b")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/AttackArea"]
 shape = SubResource("CircleShape2D_6achk")
 
-[node name="Health" type="Node" parent="."]
-script = ExtResource("7_khojr")
+[node name="Sprite2D" type="Sprite2D" parent="Enemy"]
+texture = ExtResource("4_dbmgj")
+hframes = 4
+vframes = 4
+
+[node name="DamageReceiver" type="Node" parent="Enemy"]
+script = ExtResource("7_gfm1v")
+
+[node name="DamageDealer" type="Node" parent="Enemy"]
+script = ExtResource("9_docgn")

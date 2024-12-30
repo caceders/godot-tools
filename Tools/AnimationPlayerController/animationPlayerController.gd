@@ -1,4 +1,4 @@
-class_name AnimatedSprite2DController extends AnimatedSprite2D
+class_name AnimationPlayerController extends AnimationPlayer
 
 ## A node for controlling the AnimatedSpriteController easily. Can smoothly play base animations and sudden overlay animations.
 
@@ -53,7 +53,7 @@ func play_overlay_animation(overlay_animation: String, priority: int, join_queue
 
 
 # region private methods
-func _on_animation_finished():
+func _on_animation_finished(_param):
     if not _overlay_animation_queue.is_empty():
         var next_animation = _overlay_animation_queue.pop_front()
         _current_overlay_animation_priority = next_animation.priority
