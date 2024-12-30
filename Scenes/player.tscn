@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cdivytsoyrfk3"]
+[gd_scene load_steps=43 format=3 uid="uid://cdivytsoyrfk3"]
 
 [ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_yljs5"]
 [ext_resource type="Texture2D" uid="uid://d1cqd567c4p3u" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Idle.png" id="2_y1qmj"]
@@ -9,6 +9,38 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_q83v7"]
 size = Vector2(7, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hf01v"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mla16"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sfsht"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jxfj4"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(96, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_huuxm"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d4jgc"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f7q50"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_67kru"]
+atlas = ExtResource("3_rdcsq")
+region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t5c85"]
 atlas = ExtResource("2_y1qmj")
@@ -74,38 +106,6 @@ region = Rect2(192, 0, 32, 32)
 atlas = ExtResource("2_y1qmj")
 region = Rect2(224, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_hf01v"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(0, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_mla16"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(32, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_sfsht"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(64, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_jxfj4"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(96, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_huuxm"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_d4jgc"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_f7q50"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(64, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_67kru"]
-atlas = ExtResource("3_rdcsq")
-region = Rect2(96, 0, 32, 32)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_ap6fr"]
 atlas = ExtResource("4_qjxco")
 region = Rect2(0, 32, 32, 32)
@@ -140,6 +140,40 @@ region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_0ht1w"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hf01v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mla16")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sfsht")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jxfj4")
+}],
+"loop": false,
+"name": &"playerAttackLeft",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_huuxm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4jgc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f7q50")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_67kru")
+}],
+"loop": false,
+"name": &"playerAttackRight",
+"speed": 10.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_t5c85")
@@ -200,40 +234,6 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_hf01v")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_mla16")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_sfsht")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_jxfj4")
-}],
-"loop": false,
-"name": &"playerSpellLeft",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_huuxm")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_d4jgc")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_f7q50")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_67kru")
-}],
-"loop": false,
-"name": &"playerSpellRight",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
 "texture": SubResource("AtlasTexture_ap6fr")
 }, {
 "duration": 1.0,
@@ -267,6 +267,12 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6pweg"]
+size = Vector2(8, 14)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ci8rf"]
+size = Vector2(7, 14)
+
 [node name="Player" type="Node2D" node_paths=PackedStringArray("player_entity", "animated_sprite_controller")]
 script = ExtResource("5_v07jb")
 player_entity = NodePath("Player")
@@ -275,11 +281,23 @@ animated_sprite_controller = NodePath("Player/AnimatedSprite2DController")
 [node name="Player" type="CharacterBody2D" parent="." groups=["Player"]]
 script = ExtResource("1_yljs5")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+[node name="HitBox" type="CollisionShape2D" parent="Player"]
 position = Vector2(0.5, -0.5)
 shape = SubResource("RectangleShape2D_q83v7")
 
 [node name="AnimatedSprite2DController" type="AnimatedSprite2D" parent="Player"]
 sprite_frames = SubResource("SpriteFrames_0ht1w")
-animation = &"playerIdleLeft"
+animation = &"playerAttackRight"
 script = ExtResource("5_8s35r")
+
+[node name="AttackAreaRight" type="Area2D" parent="Player"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/AttackAreaRight"]
+position = Vector2(4, 0)
+shape = SubResource("RectangleShape2D_6pweg")
+
+[node name="AttackAreaLeft" type="Area2D" parent="Player"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/AttackAreaLeft"]
+position = Vector2(-3.5, 0)
+shape = SubResource("RectangleShape2D_ci8rf")
