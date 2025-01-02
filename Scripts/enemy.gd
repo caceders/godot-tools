@@ -1,4 +1,4 @@
-extends Node
+extends CharacterBody2D
 
 const MIN_STILL_TIME = .5
 const MAX_STILL_TIME = 20
@@ -75,7 +75,7 @@ func _process(_delta):
 				enter_state(State.HUNTING)
 				return
 
-			var vector_to_strafe_position = _strafe_position - entity.global_position
+			var vector_to_strafe_position = _strafe_position - global_position
 			entity.direction = vector_to_strafe_position.normalized()
 
 			if entity.direction.x < 0:
@@ -103,7 +103,7 @@ func _process(_delta):
 				enter_state(State.CHARGING)
 				return
 
-			entity.direction = (_target.global_position - entity.global_position)
+			entity.direction = (_target.global_position - global_position)
 			if entity.direction.x < 0:
 				animation_player_controller.play_base_animation("enemyWalkLeft")
 				_last_movement_direction = Direction.LEFT
@@ -256,4 +256,4 @@ func _target_in_attack_range():
 	return false
 
 func _get_vector_to_target():
-	return (_target.global_position - entity.global_position)
+	return (_target.global_position - global_position)

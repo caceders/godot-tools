@@ -1,8 +1,10 @@
-extends Node
+extends CharacterBody2D
 
 const ATTACK_DURATION = .2
 const ATTACK_INTERVAL_TIME = .5
 const FLSH_LERP_WEIGHT = 15
+const PAUSE_REGENERATION_HURT_TIME = 5
+const INVINSIBIBILY_TIME = 1
 
 enum State {PASSIVE,
 			INVINSIBLE,
@@ -23,6 +25,7 @@ enum Direction {
 @export var attack_area_left: Area2D
 @export var attack_area_right: Area2D
 @export var health: ResourcePool
+@export var hitbox: CollisionShape2D
 
 var _attack_interval_timer : Timer
 var _attack_duration_timer : Timer
@@ -32,6 +35,7 @@ var _attack_target: Node2D
 var _last_movement_direction: Direction = Direction.LEFT
 
 var _damaged_flag: bool = false
+var _damage_from_vector = Vector2.ZERO
 
 func _ready():
 	animation_player_controller.play_base_animation("playerIdleLeft")
@@ -50,19 +54,31 @@ func _process(_delta):
 
 	match _active_state:
 		State.PASSIVE:
-			_move_around()
+			if health.amount == 0:
+				enter_state(State.DYING)
+				return
 			if _damaged_flag:
 				enter_state(State.HURT)
 				return
 			if Input.is_action_just_pressed("attack") and _attack_interval_timer.time_left == 0:
 				enter_state(State.ATTACKING)
 				return
+			_move_around()
 			return
 		State.HURT:
+			if health.amount == 0:
+				enter_state(State.DYING)
+				return
 			enter_state(State.PASSIVE)
 		State.INVINSIBLE:
+			if health.amount == 0:
+				enter_state(State.DYING)
+				return
 			return
 		State.ATTACKING:
+			if health.amount == 0:
+				enter_state(State.DYING)
+				return
 			if _damaged_flag:
 				enter_state(State.HURT)
 				return
@@ -71,6 +87,7 @@ func _process(_delta):
 				return
 			return
 		State.DYING:
+			enter_state(State.DEAD)
 			return
 		State.DEAD:
 			return
@@ -81,16 +98,30 @@ func enter_state(state: State):
 	_active_state = state
 	match _active_state:
 		State.PASSIVE:
+			health.enable_growth = true
+			player_entity.reacts_to_impulses = true
+			hitbox.disabled = false
 			return
 		State.HURT:
+			health.enable_growth = true
+			player_entity.reacts_to_impulses = true
 			if _last_movement_direction == Direction.LEFT:
 				animation_player_controller.play_overlay_animation("playerHurtLeft", 1)
 			if _last_movement_direction == Direction.RIGHT:
 				animation_player_controller.play_overlay_animation("playerHurtRight", 1)
+			player_entity.add_impulse(-_damage_from_vector)
+			health.pause_growth_for(PAUSE_REGENERATION_HURT_TIME)
 			_damaged_flag = false
+			return
 		State.INVINSIBLE:
+			health.pause_for(INVINSIBIBILY_TIME)
+			player_entity.reacts_to_impulses = true
+			hitbox.disabled = false
 			return
 		State.ATTACKING:
+			health.enable_growth = true
+			player_entity.reacts_to_impulses = true
+			hitbox.disabled = false
 			player_entity.direction = Vector2.ZERO
 			_attack_interval_timer.start(ATTACK_INTERVAL_TIME)
 			_attack_duration_timer.start(ATTACK_DURATION)
@@ -99,10 +130,20 @@ func enter_state(state: State):
 				animation_player_controller.play_overlay_animation("playerAttackLeft", 1)
 			if _last_movement_direction == Direction.RIGHT:
 				animation_player_controller.play_overlay_animation("playerAttackRight", 1)
-			return
+			return 
 		State.DYING:
+			health.enable_growth = false
+			player_entity.reacts_to_impulses = false
+			hitbox.disabled = true
+			player_entity.direction = Vector2.ZERO
+			animation_player_controller.play_overlay_animation("playerDying", 1)
 			return
 		State.DEAD:
+			health.enable_growth = false
+			player_entity.reacts_to_impulses = false
+			hitbox.disabled = true
+			player_entity.direction = Vector2.ZERO
+			animation_player_controller.play_base_animation("playerDead")
 			return
 
 func exit_state(state: State):
@@ -143,5 +184,12 @@ func _move_around():
 func _flash(delta_time):
 	animation_player_controller.modulate.a = lerp(animation_player_controller.modulate.a, 0, 1 - exp(delta_time * -FLSH_LERP_WEIGHT))
 
-func _on_damage_received(_amount):
+func _on_damage_received(_amount: float, damage_dealer : DamageDealer):
 	_damaged_flag = true
+	var _damage_from_entity = damage_dealer.get_parent() as Node2D
+	_damage_from_vector = _damage_from_entity.position - position
+
+
+func ressurect():
+	health.amount = health.max_amount
+	enter_state(State.PASSIVE)

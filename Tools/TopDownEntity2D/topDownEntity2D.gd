@@ -1,6 +1,6 @@
-class_name TopDownEntity2D extends CharacterBody2D
+class_name TopDownEntity2D extends Node
 
-## Base for entities in a top down 2D environment. Handles movement of the entity. Moves towards given direction with given speed.
+## Base for entities in a top down 2D environment. Handles movement of the body. Moves towards given direction with given speed.
 
 
 # region constants
@@ -11,8 +11,10 @@ const VELOCITY_FLOOR = .3
 
 
 # region @export variables
+@export var body: CharacterBody2D 
 @export var direction: Vector2
 @export var speed: float = 50
+@export var impulse_size: float = 10
 
 ## Smoothness of velocity change. A higher number means less smoothing.
 @export var velocity_lerp_weight: float = 15
@@ -22,12 +24,12 @@ const VELOCITY_FLOOR = .3
 
 
 # region public variabes
-## Returns true if entity has velocity above VELOCITY_FLOOR
+## Returns true if body has velocity above VELOCITY_FLOOR
 var is_moving: bool:
 	set(value):
 		pass
 	get:
-		return (velocity.length() > VELOCITY_FLOOR)
+		return (body.velocity.length() > VELOCITY_FLOOR)
 # endregion
 
 
@@ -37,26 +39,26 @@ var _impulses: Array[Vector2] = []
 
 
 # region optional built-in virtual _init method
-func _init():
+func _ready():
 	# Change motion mode from platformer to top down
-	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	body.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 # endregion
 
 
 # region remaining built-in virtual methods
 func _physics_process(delta_time):
 	_apply_new_velocity(delta_time)
-	move_and_slide()
+	body.move_and_slide()
 # endregion
 
 
 # region public methods
-## Teleports the entity to the target position
+## Teleports the body to the target position
 func teleport(p_position: Vector2):
-	global_position = p_position
+	body.global_position = body.p_position
 
 
-## Adds an impulse to the entity
+## Adds an impulse to the body
 func add_impulse(impulse: Vector2):
 	_impulses.append(impulse)
 # endregion
@@ -66,11 +68,12 @@ func add_impulse(impulse: Vector2):
 func _apply_new_velocity(delta_time):
 	var target_velocity = speed * direction.normalized()
 	# The lerping needs to be framerate independent https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
-	velocity = velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
+	body.velocity = body.velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
 
 	# Add all impulses
-	for impulse in _impulses:
-		velocity += impulse
-	_impulses = []
+	if reacts_to_impulses:
+		for impulse in _impulses:
+			body.velocity += (impulse * impulse_size)
+		_impulses = []
 
 # endregion

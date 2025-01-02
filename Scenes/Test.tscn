@@ -1,13 +1,37 @@
-[gd_scene load_steps=3 format=3 uid="uid://b3css1fymngw"]
+[gd_scene load_steps=4 format=3 uid="uid://b3css1fymngw"]
 
+[ext_resource type="Script" path="res://Scenes/test.gd" id="1_1231o"]
 [ext_resource type="PackedScene" uid="uid://cdivytsoyrfk3" path="res://Scenes/player.tscn" id="1_k0jpp"]
 [ext_resource type="PackedScene" uid="uid://41mx43s80knk" path="res://Scenes/enemy.tscn" id="2_en2us"]
 
-[node name="Node2D" type="Node2D"]
+[node name="Node" type="Node"]
 
-[node name="Player" parent="." instance=ExtResource("1_k0jpp")]
+[node name="Node2D" type="Node2D" parent="."]
+y_sort_enabled = true
+script = ExtResource("1_1231o")
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Player" parent="Node2D" instance=ExtResource("1_k0jpp")]
 
-[node name="Enemy" parent="." instance=ExtResource("2_en2us")]
+[node name="Camera2D" type="Camera2D" parent="Node2D/Player"]
+
+[node name="Enemy" parent="Node2D" instance=ExtResource("2_en2us")]
 position = Vector2(36.215, 13.855)
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 576.0
+offset_bottom = 324.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+metadata/_edit_use_anchors_ = true
+
+[node name="Button" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 15.0
+offset_right = 100.0
+offset_bottom = 46.0
+text = "ressurect"
+
+[connection signal="button_down" from="Control/Button" to="Node2D/Player" method="ressurect"]
