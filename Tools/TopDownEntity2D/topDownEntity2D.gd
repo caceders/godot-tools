@@ -15,6 +15,8 @@ const VELOCITY_FLOOR = .3
 @export var direction: Vector2
 @export var speed: float = 50
 @export var impulse_size: float = 10
+@export var is_static: bool = false
+
 
 ## Smoothness of velocity change. A higher number means less smoothing.
 @export var velocity_lerp_weight: float = 15
@@ -48,7 +50,8 @@ func _ready():
 # region remaining built-in virtual methods
 func _physics_process(delta_time):
 	_apply_new_velocity(delta_time)
-	body.move_and_slide()
+	if not is_static:
+		body.move_and_slide()
 # endregion
 
 
@@ -66,14 +69,15 @@ func add_impulse(impulse: Vector2):
 
 # region private methods
 func _apply_new_velocity(delta_time):
-	var target_velocity = speed * direction.normalized()
-	# The lerping needs to be framerate independent https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
-	body.velocity = body.velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
+	if not is_static:
+		var target_velocity = speed * direction.normalized()
+		# The lerping needs to be framerate independent https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
+		body.velocity = body.velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
 
-	# Add all impulses
-	if reacts_to_impulses:
-		for impulse in _impulses:
-			body.velocity += (impulse * impulse_size)
-		_impulses = []
+		# Add all impulses
+		if reacts_to_impulses:
+			for impulse in _impulses:
+				body.velocity += (impulse * impulse_size)
+			_impulses = []
 
 # endregion

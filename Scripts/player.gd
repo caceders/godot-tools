@@ -2,12 +2,11 @@ extends CharacterBody2D
 
 const ATTACK_DURATION = .2
 const ATTACK_INTERVAL_TIME = .5
-const FLSH_LERP_WEIGHT = 15
 const PAUSE_REGENERATION_HURT_TIME = 5
-const INVINSIBIBILY_TIME = 1
+const INVINCIBIBILY_TIME = 1
+const BASE_ATTACK_DAMAGE = 20
 
 enum State {PASSIVE,
-			INVINSIBLE,
 			ATTACKING,
 			HURT,
 			DYING,
@@ -24,13 +23,17 @@ enum Direction {
 @export var animation_player_controller: AnimationPlayerController
 @export var attack_area_left: Area2D
 @export var attack_area_right: Area2D
-@export var health: ResourcePool
+@export var health: DamageReceiver
+@export var damage_dealer: DamageDealer
 @export var hitbox: CollisionShape2D
+@export var invincibility_animation_player: AnimationPlayer
 
 var _attack_interval_timer : Timer
 var _attack_duration_timer : Timer
 var _active_state = State.PASSIVE
 var _attack_target: Node2D
+
+var _invincibility_timer : Timer
 
 var _last_movement_direction: Direction = Direction.LEFT
 
@@ -47,6 +50,10 @@ func _ready():
 	_attack_duration_timer = Timer.new()
 	_attack_duration_timer.one_shot = true
 	add_child(_attack_duration_timer)
+
+	_invincibility_timer = Timer.new()
+	_invincibility_timer.one_shot = true
+	add_child(_invincibility_timer)
 
 
 
@@ -70,11 +77,6 @@ func _process(_delta):
 				enter_state(State.DYING)
 				return
 			enter_state(State.PASSIVE)
-		State.INVINSIBLE:
-			if health.amount == 0:
-				enter_state(State.DYING)
-				return
-			return
 		State.ATTACKING:
 			if health.amount == 0:
 				enter_state(State.DYING)
@@ -104,6 +106,7 @@ func enter_state(state: State):
 			return
 		State.HURT:
 			health.enable_growth = true
+			activate_invincibility()
 			player_entity.reacts_to_impulses = true
 			if _last_movement_direction == Direction.LEFT:
 				animation_player_controller.play_overlay_animation("playerHurtLeft", 1)
@@ -113,23 +116,20 @@ func enter_state(state: State):
 			health.pause_growth_for(PAUSE_REGENERATION_HURT_TIME)
 			_damaged_flag = false
 			return
-		State.INVINSIBLE:
-			health.pause_for(INVINSIBIBILY_TIME)
-			player_entity.reacts_to_impulses = true
-			hitbox.disabled = false
-			return
 		State.ATTACKING:
 			health.enable_growth = true
 			player_entity.reacts_to_impulses = true
 			hitbox.disabled = false
 			player_entity.direction = Vector2.ZERO
-			_attack_interval_timer.start(ATTACK_INTERVAL_TIME)
-			_attack_duration_timer.start(ATTACK_DURATION)
 
+			attack()
+
+			# Animate
 			if _last_movement_direction == Direction.LEFT:
 				animation_player_controller.play_overlay_animation("playerAttackLeft", 1)
 			if _last_movement_direction == Direction.RIGHT:
 				animation_player_controller.play_overlay_animation("playerAttackRight", 1)
+
 			return 
 		State.DYING:
 			health.enable_growth = false
@@ -181,9 +181,6 @@ func _move_around():
 		else:
 			animation_player_controller.play_base_animation("playerIdleRight")
 
-func _flash(delta_time):
-	animation_player_controller.modulate.a = lerp(animation_player_controller.modulate.a, 0, 1 - exp(delta_time * -FLSH_LERP_WEIGHT))
-
 func _on_damage_received(_amount: float, damage_dealer : DamageDealer):
 	_damaged_flag = true
 	var _damage_from_entity = damage_dealer.get_parent() as Node2D
@@ -193,3 +190,28 @@ func _on_damage_received(_amount: float, damage_dealer : DamageDealer):
 func ressurect():
 	health.amount = health.max_amount
 	enter_state(State.PASSIVE)
+
+func activate_invincibility():
+	health.ignore_all_damage = true
+	_invincibility_timer.start(INVINCIBIBILY_TIME)
+	invincibility_animation_player.play("invincibility")
+	await _invincibility_timer.timeout
+	health.ignore_all_damage = false
+	invincibility_animation_player.stop()
+
+func attack():
+	_attack_interval_timer.start(ATTACK_INTERVAL_TIME)
+	_attack_duration_timer.start(ATTACK_DURATION)
+
+	# Deal damage
+	var bodies = []
+	if _last_movement_direction == Direction.LEFT:
+		bodies = attack_area_left.get_overlapping_bodies()
+	elif _last_movement_direction == Direction.RIGHT:
+		bodies = attack_area_right.get_overlapping_bodies()
+	
+	for body in bodies:
+		if body.is_in_group("Damagable"):
+			var target_damage_receiver = body.get_node("DamageReceiver")
+			if target_damage_receiver != null:
+				damage_dealer.deal_damage(BASE_ATTACK_DAMAGE, target_damage_receiver)

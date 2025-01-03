@@ -20,7 +20,7 @@ func _ready():
 
 # region remaining built-in virtual methods
 func _process(_add_constant_forcedelta):
-    if not is_playing():
+    if not is_playing() and _base_animation != "":
         play(_base_animation)
 # endregion
 

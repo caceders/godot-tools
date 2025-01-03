@@ -1,14 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://b3css1fymngw"]
+[gd_scene load_steps=5 format=3 uid="uid://b3css1fymngw"]
 
-[ext_resource type="Script" path="res://Scenes/test.gd" id="1_1231o"]
-[ext_resource type="PackedScene" uid="uid://cdivytsoyrfk3" path="res://Scenes/player.tscn" id="1_k0jpp"]
+[ext_resource type="Script" path="res://Scripts/test.gd" id="1_1231o"]
+[ext_resource type="PackedScene" uid="uid://d28n6ebqyns3n" path="res://Scenes/player.tscn" id="1_k0jpp"]
 [ext_resource type="PackedScene" uid="uid://41mx43s80knk" path="res://Scenes/enemy.tscn" id="2_en2us"]
+[ext_resource type="PackedScene" uid="uid://3e0cvi4n2eeo" path="res://Tools/EntityBase/entityBase.tscn" id="4_xyy87"]
 
 [node name="Node" type="Node"]
 
 [node name="Node2D" type="Node2D" parent="."]
 y_sort_enabled = true
 script = ExtResource("1_1231o")
+object_scene = ExtResource("4_xyy87")
 
 [node name="Player" parent="Node2D" instance=ExtResource("1_k0jpp")]
 
@@ -32,6 +34,10 @@ offset_left = 19.0
 offset_top = 15.0
 offset_right = 100.0
 offset_bottom = 46.0
+focus_mode = 0
 text = "ressurect"
+
+[node name="EntityBase" parent="." instance=ExtResource("4_xyy87")]
+position = Vector2(-28, 33)
 
 [connection signal="button_down" from="Control/Button" to="Node2D/Player" method="ressurect"]

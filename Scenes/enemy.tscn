@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://41mx43s80knk"]
+[gd_scene load_steps=29 format=3 uid="uid://41mx43s80knk"]
 
 [ext_resource type="Script" path="res://Scripts/enemy.gd" id="1_ov72j"]
 [ext_resource type="Texture2D" uid="uid://bs1soxc80itm4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Walk.png" id="2_mocu0"]
@@ -6,13 +6,41 @@
 [ext_resource type="Texture2D" uid="uid://fgnfqglvb0ua" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Idle.png" id="3_p2x04"]
 [ext_resource type="Texture2D" uid="uid://cdsnhimxta5x8" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Attack.png" id="4_dbmgj"]
 [ext_resource type="Texture2D" uid="uid://dj0gvn8tgwdfd" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Die.png" id="5_ryql0"]
+[ext_resource type="Texture2D" uid="uid://cqesi1n8diot5" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Orc/Dmg.png" id="6_y8xnx"]
 [ext_resource type="Script" path="res://Tools/DamageSystem/damageReceiver.gd" id="7_gfm1v"]
 [ext_resource type="Script" path="res://Tools/DamageSystem/damagaDealer.gd" id="9_docgn"]
-[ext_resource type="PackedScene" uid="uid://bk5tyajvilvvk" path="res://Scenes/healthBar.tscn" id="10_7j4i7"]
+[ext_resource type="PackedScene" uid="uid://bk5tyajvilvvk" path="res://Tools/ResourceBar/resourceBar.tscn" id="10_7j4i7"]
 [ext_resource type="PackedScene" uid="uid://b6px8dc1xqq0e" path="res://Tools/TopDownEntity2D/topDownEntity2D.tscn" id="10_gt55y"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gvesa"]
 size = Vector2(8, 8)
+
+[sub_resource type="Animation" id="Animation_teu7g"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
 
 [sub_resource type="Animation" id="Animation_kpg8u"]
 resource_name = "enemyAttackLeft"
@@ -272,6 +300,70 @@ tracks/4/keys = {
 "values": [Vector2i(0, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_wiqys"]
+resource_name = "enemyDead"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("5_ryql0")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [12]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [7]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(7, 0)]
+}
+
 [sub_resource type="Animation" id="Animation_fru08"]
 resource_name = "enemyDie"
 length = 0.8
@@ -322,6 +414,134 @@ tracks/3/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
 "update": 1,
 "values": [0, 1, 2, 3, 4, 5, 6]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_ck2ig"]
+resource_name = "enemyHurtLeft"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_y8xnx")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [4, 5, 6, 7]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:frame_coords")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_n773w"]
+resource_name = "enemyHurtRight"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_y8xnx")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -598,11 +818,15 @@ tracks/4/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_x38jw"]
 _data = {
+"RESET": SubResource("Animation_teu7g"),
 "enemyAttackLeft": SubResource("Animation_kpg8u"),
 "enemyAttackRight": SubResource("Animation_eda65"),
 "enemyChargeAttackLeft": SubResource("Animation_j88ef"),
 "enemyChargeAttackRight": SubResource("Animation_ggedd"),
+"enemyDead": SubResource("Animation_wiqys"),
 "enemyDie": SubResource("Animation_fru08"),
+"enemyHurtLeft": SubResource("Animation_ck2ig"),
+"enemyHurtRight": SubResource("Animation_n773w"),
 "enemyIdleLeft": SubResource("Animation_qvw4o"),
 "enemyIdleRight": SubResource("Animation_855y3"),
 "enemyWalkLeft": SubResource("Animation_spnwc"),
@@ -615,7 +839,8 @@ radius = 106.042
 [sub_resource type="CircleShape2D" id="CircleShape2D_6achk"]
 radius = 9.0
 
-[node name="Enemy" type="CharacterBody2D" node_paths=PackedStringArray("entity", "animation_player_controller", "detection_area", "attack_area", "health", "damage_dealer") groups=["Attackable"]]
+[node name="Enemy" type="CharacterBody2D" node_paths=PackedStringArray("entity", "animation_player_controller", "detection_area", "attack_area", "health", "damage_dealer") groups=["Damagable"]]
+motion_mode = 1
 script = ExtResource("1_ov72j")
 entity = NodePath("TopDownEntity2D")
 animation_player_controller = NodePath("AnimationPlayerController")
@@ -649,7 +874,6 @@ shape = SubResource("CircleShape2D_6achk")
 texture = ExtResource("4_dbmgj")
 hframes = 4
 vframes = 4
-frame = 4
 
 [node name="DamageReceiver" type="Node" parent="."]
 script = ExtResource("7_gfm1v")
@@ -657,12 +881,15 @@ script = ExtResource("7_gfm1v")
 [node name="DamageDealer" type="Node" parent="."]
 script = ExtResource("9_docgn")
 
-[node name="HealthBar" parent="." node_paths=PackedStringArray("health") instance=ExtResource("10_7j4i7")]
+[node name="HealthBar" parent="." node_paths=PackedStringArray("resource", "sprite") instance=ExtResource("10_7j4i7")]
 y_sort_enabled = true
-offset_top = -10.815
-offset_bottom = -5.815
-health = NodePath("../DamageReceiver")
+offset_top = -21.0
+offset_bottom = -16.0
+resource = NodePath("../DamageReceiver")
+sprite = NodePath("../Sprite2D")
 
 [node name="TopDownEntity2D" parent="." node_paths=PackedStringArray("body") instance=ExtResource("10_gt55y")]
 body = NodePath("..")
 speed = 20.0
+
+[connection signal="damage_received" from="DamageReceiver" to="." method="_on_damage_received"]

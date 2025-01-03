@@ -5,6 +5,8 @@ const MAX_STILL_TIME = 20
 const MAX_STRAFE_RADIUS = 50
 const ACCEPTABLE_DISTANCE_TO_STRAFE_POSITION = 1
 const CHARGE_ATTACK_TIME = .5
+const HEALTH_REGENERATION_PAUSE = 10
+const STUN_TIME = .5
 
 enum State {IDLE,
 			STRAFING,
@@ -27,14 +29,18 @@ enum Direction {
 @export var detection_area: Area2D
 @export var attack_area: Area2D
 @export var target_groups: Array[String]
-@export var health: ResourcePool
+@export var health: DamageReceiver
 @export var damage_dealer: DamageDealer
 var _target: Node2D
 
 var _stand_still_timer : Timer
 var _charge_attack_timer : Timer
+var _stun_timer : Timer
 var _active_state = State.IDLE
 var _last_movement_direction = Direction.LEFT
+
+var _damaged_flag : bool = false
+var _damage_from_vector: Vector2 = Vector2.ZERO
 
 var _strafe_position : Vector2
 
@@ -47,6 +53,10 @@ func _ready():
 	_charge_attack_timer.one_shot = true
 	add_child(_charge_attack_timer)
 
+	_stun_timer = Timer.new()
+	_stun_timer.one_shot = true
+	add_child(_stun_timer)
+
 	animation_player_controller.play_base_animation("enemyIdleLeft")
 
 
@@ -56,6 +66,9 @@ func _process(_delta):
 		State.IDLE:
 			if health.amount == 0:
 				enter_state(State.DYING)
+				return
+			if _damaged_flag:
+				enter_state(State.HURT)
 				return
 			if _target_in_sight():
 				enter_state(State.HUNTING)
@@ -70,7 +83,9 @@ func _process(_delta):
 			if health.amount == 0:
 				enter_state(State.DYING)
 				return
-
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			if _target_in_sight():
 				enter_state(State.HUNTING)
 				return
@@ -88,13 +103,16 @@ func _process(_delta):
 			if vector_to_strafe_position.length() < ACCEPTABLE_DISTANCE_TO_STRAFE_POSITION:
 				enter_state(State.IDLE)
 			return
+		
 
 		State.HUNTING:
 			
 			if health.amount == 0:
 				enter_state(State.DYING)
 				return
-
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			if not _target_in_sight():
 				enter_state(State.IDLE)
 				return
@@ -111,13 +129,20 @@ func _process(_delta):
 				animation_player_controller.play_base_animation("enemyWalkRight")
 				_last_movement_direction = Direction.RIGHT
 			return
+		
+		State.HURT:
+			if _stun_timer.time_left == 0:
+				enter_state(State.IDLE)
+			return
 			
 		State.CHARGING:
 
 			if health.amount == 0:
 				enter_state(State.DYING)
 				return
-
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			if not _target_in_attack_range():
 				enter_state(State.HUNTING)
 				return
@@ -137,7 +162,9 @@ func _process(_delta):
 			if health.amount == 0:
 				enter_state(State.DYING)
 				return
-
+			if _damaged_flag:
+				enter_state(State.HURT)
+				return
 			enter_state(State.CHARGING)
 			return
 			
@@ -157,6 +184,7 @@ func enter_state(state: State):
 
 	match state:
 		State.IDLE:
+			health.enable_growth = true
 
 			entity.direction = Vector2.ZERO
 
@@ -169,20 +197,34 @@ func enter_state(state: State):
 			return
 			
 		State.STRAFING:
+			health.enable_growth = true
 			# Pick a random spot nearby and walk to
 			var strafe_direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
 			_strafe_position = strafe_direction * randf_range(0, MAX_STRAFE_RADIUS)
 			return
-			
+
+		State.HURT:
+			health.pause_growth_for(HEALTH_REGENERATION_PAUSE)
+			_damaged_flag = false
+			entity.add_impulse(-_damage_from_vector)
+			if _last_movement_direction == Direction.LEFT:
+				animation_player_controller.play_overlay_animation("enemyHurtLeft", 1)
+			if _last_movement_direction == Direction.RIGHT:
+				animation_player_controller.play_overlay_animation("enemyHurtRight", 1)
+
 		State.HUNTING:
+			health.enable_growth = true
+			_stun_timer.start(STUN_TIME)
 			pass
 			
 		State.CHARGING:
+			health.enable_growth = true
 			entity.direction = Vector2(0,0)
 			_charge_attack_timer.start(CHARGE_ATTACK_TIME)
 			return
 			
 		State.ATTACKING:
+			health.enable_growth = true
 
 			# Deal damage
 			var target_damage_receiver = _target.get_node("DamageReceiver")
@@ -198,9 +240,11 @@ func enter_state(state: State):
 			return
 			
 		State.DYING:
+			health.enable_growth = false
 			animation_player_controller.play_overlay_animation("enemyDie", 1)
 			
 		State.DEAD:
+			health.enable_growth = false
 			entity.direction = Vector2(0,0)
 			return
 			
@@ -257,3 +301,8 @@ func _target_in_attack_range():
 
 func _get_vector_to_target():
 	return (_target.global_position - global_position)
+
+func _on_damage_received(_amount: float, damage_dealer : DamageDealer):
+	_damaged_flag = true
+	var _damage_from_entity = damage_dealer.get_parent() as Node2D
+	_damage_from_vector = _damage_from_entity.position - position
