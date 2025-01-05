@@ -1,4 +1,4 @@
-class_name TopDownEntity2D extends Node
+class_name TopDownEntity2D extends Node2D
 
 ## Base for entities in a top down 2D environment. Handles movement of the body. Moves towards given direction with given speed.
 
@@ -6,7 +6,7 @@ class_name TopDownEntity2D extends Node
 # region constants
 ## Ignore impulses with vector length under the floor
 const IMPULSE_FLOOR = .1
-const VELOCITY_FLOOR = .3
+const VELOCITY_FLOOR = 5
 # endregion
 
 

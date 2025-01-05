@@ -1,4 +1,4 @@
-class_name ResourcePool extends Node
+class_name ResourcePool extends Node2D
 ## A class implementing a resourcepool, - health, stamina, mana, oxygen etc.
 
 ## To use add the resourcepool Node to an object. Name the pool something

@@ -1,20 +1,20 @@
 [gd_scene load_steps=14 format=3 uid="uid://3e0cvi4n2eeo"]
 
-[ext_resource type="Script" path="res://Tools/DamageSystem/damageReceiver.gd" id="1_pii7l"]
-[ext_resource type="PackedScene" uid="uid://bk5tyajvilvvk" path="res://Tools/ResourceBar/resourceBar.tscn" id="2_jlx41"]
-[ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="3_5ucxe"]
-[ext_resource type="Texture2D" uid="uid://cu1b30gnc3b5o" path="res://Assets/Minifantasy_Dungeon_Assets/Props/Props.png" id="4_chngg"]
-[ext_resource type="Texture2D" uid="uid://bdtg0os0u7u2g" path="res://Assets/Minifantasy_Magic_Weapons_And_Effects_Assets/Standalone Effects/Status Effects/Status_petrification.png" id="4_r00jv"]
-[ext_resource type="Script" path="res://Tools/HitBox/hitBox.gd" id="6_oimft"]
-[ext_resource type="Script" path="res://Scripts/appearDisappear.gd" id="7_e6hiq"]
+[ext_resource type="Script" path="res://Tools/TopDownEntity2D/topDownEntity2D.gd" id="1_4ho6y"]
+[ext_resource type="Script" path="res://Tools/DamageSystem/damageReceiver.gd" id="2_2j8ja"]
+[ext_resource type="PackedScene" uid="uid://bk5tyajvilvvk" path="res://Tools/ResourceBar/resourceBar.tscn" id="3_rm62l"]
+[ext_resource type="Texture2D" uid="uid://cu1b30gnc3b5o" path="res://Assets/Minifantasy_Dungeon_Assets/Props/Props.png" id="4_i5vyp"]
+[ext_resource type="Script" path="res://Tools/HitBox/hitBox.gd" id="5_5tvkh"]
+[ext_resource type="Script" path="res://Scripts/appearDisappear.gd" id="6_jjrbe"]
+[ext_resource type="Texture2D" uid="uid://bdtg0os0u7u2g" path="res://Assets/Minifantasy_Magic_Weapons_And_Effects_Assets/Standalone Effects/Status Effects/Status_petrification.png" id="7_luv08"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_d1xrw"]
-atlas = ExtResource("4_chngg")
+atlas = ExtResource("4_i5vyp")
 region = Rect2(200, 24, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ushcn"]
-atlas = ExtResource("4_r00jv")
-region = Rect2(172, 12, 8, 8)
+atlas = ExtResource("7_luv08")
+region = Rect2(234, 9, 9, 13)
 
 [sub_resource type="Animation" id="Animation_63m85"]
 length = 0.001
@@ -80,7 +80,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0.3),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("4_r00jv")]
+"values": [ExtResource("7_luv08")]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -144,7 +144,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0.1),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("4_r00jv")]
+"values": [ExtResource("7_luv08")]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -193,29 +193,30 @@ _data = {
 [node name="EntityBase" type="CharacterBody2D" groups=["Damagable"]]
 motion_mode = 1
 
-[node name="DamageReceiver" type="Node" parent="."]
-script = ExtResource("1_pii7l")
+[node name="TopDownEntity2D" type="Node2D" parent="." node_paths=PackedStringArray("body")]
+script = ExtResource("1_4ho6y")
+body = NodePath("..")
+speed = 30.0
+
+[node name="DamageReceiver" type="Node2D" parent="."]
+script = ExtResource("2_2j8ja")
 enable_growth = false
 
-[node name="HealthBar" parent="." node_paths=PackedStringArray("resource", "sprite") instance=ExtResource("2_jlx41")]
+[node name="HealthBar" parent="." node_paths=PackedStringArray("resource", "sprite") instance=ExtResource("3_rm62l")]
 offset_top = -9.0
 offset_bottom = -4.0
 resource = NodePath("../DamageReceiver")
 sprite = NodePath("../Sprite2D")
 metadata/_edit_use_anchors_ = true
 
-[node name="TopDownEntity2D" type="Node" parent="." node_paths=PackedStringArray("body")]
-script = ExtResource("3_5ucxe")
-body = NodePath("..")
-
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = SubResource("AtlasTexture_d1xrw")
 
 [node name="HitBox" type="CollisionShape2D" parent="."]
-script = ExtResource("6_oimft")
+script = ExtResource("5_5tvkh")
 
 [node name="AppearDisappear" type="Node2D" parent="."]
-script = ExtResource("7_e6hiq")
+script = ExtResource("6_jjrbe")
 
 [node name="AppearDisappearAnimationPlayer" type="AnimationPlayer" parent="AppearDisappear"]
 root_node = NodePath("../..")

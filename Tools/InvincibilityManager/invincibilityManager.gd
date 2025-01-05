@@ -1,4 +1,4 @@
-class_name InvincibilityManager extends Node
+class_name InvincibilityManager extends Node2D
 
 const OPACITY_CHANGE_TIME = .5
 
