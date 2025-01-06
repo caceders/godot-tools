@@ -3,10 +3,12 @@ class_name AttackController extends Node2D
 enum AttackType{
 	NEAREST,
 	ALL,
+	SPECIFIC,
 }
 
 @export var attack_area: AttackArea
 @export var damage_dealer: DamageDealer
+@export var attack_type: AttackType = AttackType.NEAREST
 
 @export var attack_cooldown: float = 1
 @export var attack_duration: float = .2
@@ -24,11 +26,14 @@ func _ready():
 	add_child(_attack_duration_timer)
 
 
-func attack(amount: float, knockback: bool, attack_type: AttackType):
+func attack(amount: float, knockback: bool, body = null):
 	if attack_type == AttackType.NEAREST:
 		attack_area.attack_nearest_body_in_group(amount, knockback, damage_dealer)
 	elif attack_type == AttackType.ALL:
 		attack_area.attack_all_bodies_in_group(amount, knockback, damage_dealer)
+	elif attack_type == AttackType.SPECIFIC:
+		if body:
+			attack_area.attack_body(amount, knockback, damage_dealer, body)
 	_attack_cooldown_timer.start(attack_cooldown)
 	_attack_duration_timer.start(attack_duration)
 

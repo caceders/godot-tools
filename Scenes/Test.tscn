@@ -1,9 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://b3css1fymngw"]
+[gd_scene load_steps=6 format=3 uid="uid://b3css1fymngw"]
 
 [ext_resource type="Script" path="res://Scripts/test.gd" id="1_1231o"]
 [ext_resource type="PackedScene" uid="uid://d28n6ebqyns3n" path="res://Tools/Player/player.tscn" id="1_k0jpp"]
 [ext_resource type="PackedScene" uid="uid://77648svjoync" path="res://Tools/EntityBases/creatureBase.tscn" id="4_syynl"]
 [ext_resource type="PackedScene" uid="uid://3e0cvi4n2eeo" path="res://Tools/EntityBases/entityBase.tscn" id="4_xyy87"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_k0sld"]
+vertices = PackedVector2Array(285.961, -86.0234, 285.031, 162.969, -129.43, 162.023, -115.539, -86.9688)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-125, -97, 296, -96, 295, 173, -140, 172)])
 
 [node name="Node" type="Node"]
 
@@ -19,6 +24,9 @@ player = NodePath("Player")
 
 [node name="CreatureBase" parent="Node2D" instance=ExtResource("4_syynl")]
 position = Vector2(41, 17)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="Node2D"]
+navigation_polygon = SubResource("NavigationPolygon_k0sld")
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3

@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://h1jbxoqanmwo"]
+
+[ext_resource type="PackedScene" uid="uid://77648svjoync" path="res://Tools/EntityBases/creatureBase.tscn" id="1_tdxna"]
+
+[node name="EnemyBase" instance=ExtResource("1_tdxna")]
+
+[node name="Strafer" parent="." index="6"]
+enabled = false
+
+[node name="ChaserEvader" parent="." index="7"]
+enabled = true
+chase = Array[String](["Player"])
+prioritize = 0
+
+[node name="NavigationAgent2D" parent="." index="10"]
+avoidance_enabled = true
+
+[node name="AttackController" parent="." index="12"]
+attack_type = 2

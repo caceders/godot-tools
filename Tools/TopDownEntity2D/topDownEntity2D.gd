@@ -11,12 +11,12 @@ const VELOCITY_FLOOR = 5
 
 
 # region @export variables
+@export var navigation_agent : NavigationAgent2D
 @export var body: CharacterBody2D 
 @export var direction: Vector2
 @export var speed: float = 50
 @export var impulse_size: float = 10
 @export var is_static: bool = false
-
 
 ## Smoothness of velocity change. A higher number means less smoothing.
 @export var velocity_lerp_weight: float = 15
@@ -73,11 +73,20 @@ func _apply_new_velocity(delta_time):
 		var target_velocity = speed * direction.normalized()
 		# The lerping needs to be framerate independent https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
 		body.velocity = body.velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
+		if navigation_agent:
+			if navigation_agent.avoidance_enabled:
+				navigation_agent.set_velocity(body.velocity)
+			else:
+				_on_velocity_computed(body.velocity)
 
 		# Add all impulses
 		if reacts_to_impulses:
 			for impulse in _impulses:
 				body.velocity += (impulse * impulse_size)
 			_impulses = []
+		
 
+func _on_velocity_computed(safe_velocity: Vector2):
+	body.velocity = safe_velocity
+	
 # endregion

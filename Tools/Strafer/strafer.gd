@@ -1,6 +1,7 @@
 class_name Strafer extends Node2D
 
-const MIN_DISTANCE_TO_DESIRED_POSITION = 0.1
+const MAX_TRIES_FOR_NEW_AREA = 100
+
 
 enum StrafeState{
 	IDLE,
@@ -12,6 +13,7 @@ enum StrafeCentrumType{
 	SET_POSITION,
 }
 
+@export var navigation_agent : NavigationAgent2D
 @export var entity: TopDownEntity2D
 
 @export var enabled: bool = true
@@ -29,7 +31,6 @@ enum StrafeCentrumType{
 
 var _active_state: StrafeState = StrafeState.IDLE
 var _stand_still_timer : Timer
-var _desired_position: Vector2 = Vector2(0 ,0)
 
 func _ready():
 	_stand_still_timer = Timer.new()
@@ -47,10 +48,18 @@ func _process(_delta):
 			return
 
 		StrafeState.WALKING:
-			if (global_position - _desired_position).length() < MIN_DISTANCE_TO_DESIRED_POSITION:
+			return
+
+func _physics_process(delta):
+	if not enabled:
+		return
+	match _active_state:
+
+		StrafeState.WALKING:
+			if navigation_agent.is_target_reached():
 				_enter_state(StrafeState.IDLE)
 				return
-			entity.direction = global_position.direction_to(_desired_position)
+			entity.direction = global_position.direction_to(navigation_agent.get_next_path_position())
 			return
 
 func _enter_state(state: StrafeState):
@@ -63,14 +72,28 @@ func _enter_state(state: StrafeState):
 			_stand_still_timer.start(randf_range(min_stand_still_time, max_stand_still_time))
 			return
 		StrafeState.WALKING:
-			var direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
-			var distance = randf_range(min_strafe_distance, max_strafe_distance)
 			match strafe_centrum_type:
 				StrafeCentrumType.ENTITY_POSITION:
-					_desired_position = global_position + (direction * distance) + strafe_weight
+					var direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+					var distance = randf_range(min_strafe_distance, max_strafe_distance)
+					navigation_agent.target_position = global_position + (direction * distance) + strafe_weight
+					var tries = 1
+					while not navigation_agent.is_target_reachable() and tries < MAX_TRIES_FOR_NEW_AREA:
+						navigation_agent.target_position = global_position + (direction * distance) + strafe_weight
+						tries += 1
+					if tries >= MAX_TRIES_FOR_NEW_AREA:
+						_enter_state(StrafeState.IDLE)
 					return
 				StrafeCentrumType.SET_POSITION:
-					_desired_position = strafe_centrum_position + direction * distance + strafe_weight
+					var direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+					var distance = randf_range(min_strafe_distance, max_strafe_distance)
+					navigation_agent.target_position = strafe_centrum_position + (direction * distance) + strafe_weight
+					var tries = 1
+					while not navigation_agent.is_target_reachable() and tries < MAX_TRIES_FOR_NEW_AREA:
+						navigation_agent.target_position = strafe_centrum_position + direction * distance + strafe_weight
+						tries += 1
+					if tries >= MAX_TRIES_FOR_NEW_AREA:
+						_enter_state(StrafeState.IDLE)
 					return
 			return
 					
