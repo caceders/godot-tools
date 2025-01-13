@@ -1,49 +1,21 @@
-[gd_scene load_steps=6 format=3 uid="uid://b3css1fymngw"]
+[gd_scene load_steps=4 format=3 uid="uid://b3css1fymngw"]
 
-[ext_resource type="Script" path="res://Scripts/test.gd" id="1_1231o"]
-[ext_resource type="PackedScene" uid="uid://d28n6ebqyns3n" path="res://Tools/Player/player.tscn" id="1_k0jpp"]
-[ext_resource type="PackedScene" uid="uid://77648svjoync" path="res://Tools/EntityBases/creatureBase.tscn" id="4_syynl"]
-[ext_resource type="PackedScene" uid="uid://3e0cvi4n2eeo" path="res://Tools/EntityBases/entityBase.tscn" id="4_xyy87"]
+[ext_resource type="PackedScene" uid="uid://h1jbxoqanmwo" path="res://Tools/EntityBases/enemyBase.tscn" id="1_72s1f"]
+[ext_resource type="PackedScene" uid="uid://d28n6ebqyns3n" path="res://Tools/Player/player.tscn" id="2_gnftl"]
 
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_k0sld"]
-vertices = PackedVector2Array(285.961, -86.0234, 285.031, 162.969, -129.43, 162.023, -115.539, -86.9688)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(-125, -97, 296, -96, 295, 173, -140, 172)])
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_socgf"]
+vertices = PackedVector2Array(284.383, 86.9219, -225.898, 133.492, -259.789, 81.3594, -242.656, -167.008, 267.633, -167.977)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-270, 84, -252, -177, 277, -178, 295, 96, -231, 144)])
 
-[node name="Node" type="Node"]
+[node name="Node2D" type="Node2D"]
 
-[node name="Node2D" type="Node2D" parent="." node_paths=PackedStringArray("player")]
-y_sort_enabled = true
-script = ExtResource("1_1231o")
-object_scene = ExtResource("4_xyy87")
-player = NodePath("Player")
+[node name="EnemyBase" parent="." instance=ExtResource("1_72s1f")]
 
-[node name="Player" parent="Node2D" instance=ExtResource("1_k0jpp")]
+[node name="Player" parent="." instance=ExtResource("2_gnftl")]
+position = Vector2(-14, 16)
 
-[node name="Camera2D" type="Camera2D" parent="Node2D/Player"]
+[node name="Camera2D" type="Camera2D" parent="Player"]
 
-[node name="CreatureBase" parent="Node2D" instance=ExtResource("4_syynl")]
-position = Vector2(41, 17)
-
-[node name="NavigationRegion2D" type="NavigationRegion2D" parent="Node2D"]
-navigation_polygon = SubResource("NavigationPolygon_k0sld")
-
-[node name="Control" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 576.0
-offset_bottom = 324.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-metadata/_edit_use_anchors_ = true
-
-[node name="Button" type="Button" parent="Control"]
-layout_mode = 0
-offset_left = 19.0
-offset_top = 15.0
-offset_right = 100.0
-offset_bottom = 46.0
-focus_mode = 0
-text = "ressurect"
-
-[connection signal="button_down" from="Control/Button" to="Node2D/Player" method="ressurect"]
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("NavigationPolygon_socgf")

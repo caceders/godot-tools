@@ -2,6 +2,8 @@ extends Node2D
 
 @export var active: bool = true
 @export var scene_spawn_on_disappear: PackedScene  # Drag your scene (e.g., Sprite2D) into this field in the editor
+@export var entity_sprite: Sprite2D
+@export var appear_disappear_sprite: Sprite2D
 
 @onready var appear_disappear_animation_player : AnimationPlayer= $AppearDisappearAnimationPlayer
 @onready var entity = get_parent()
@@ -11,6 +13,9 @@ func _ready():
 		Appear()
 		var damage_receiver = entity.get_node("DamageReceiver") as DamageReceiver
 		damage_receiver.resource_reached_min.connect(Disappear)
+
+func _process(delta):
+	appear_disappear_sprite.offset = entity_sprite.offset
 
 func Appear():
 	if active:

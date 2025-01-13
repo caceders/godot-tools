@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://nma0frjffyjs"
-path="res://.godot/imported/Shadows.png-5db3ae16c303aab7d0e27acf433726bb.ctex"
+uid="uid://8erxg6bfbje1"
+path="res://.godot/imported/MagicBall.png-5e2061fbfa87aea45cef7af8305a0f51.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Minifantasy_Dungeon_Assets/Tileset/Shadows.png"
-dest_files=["res://.godot/imported/Shadows.png-5db3ae16c303aab7d0e27acf433726bb.ctex"]
+source_file="res://Assets/MagicBall.png"
+dest_files=["res://.godot/imported/MagicBall.png-5e2061fbfa87aea45cef7af8305a0f51.ctex"]
 
 [params]
 

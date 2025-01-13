@@ -1,18 +1,24 @@
-[gd_scene load_steps=28 format=3 uid="uid://d28n6ebqyns3n"]
+[gd_scene load_steps=34 format=3 uid="uid://d28n6ebqyns3n"]
 
 [ext_resource type="PackedScene" uid="uid://3e0cvi4n2eeo" path="res://Tools/EntityBases/entityBase.tscn" id="1_qws5j"]
 [ext_resource type="Texture2D" uid="uid://d1cqd567c4p3u" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Idle.png" id="2_y1qmj"]
 [ext_resource type="Script" path="res://Tools/AnimationPlayerController/animationPlayerController.gd" id="3_v4kgf"]
-[ext_resource type="Script" path="res://Tools/AttackArea/attackArea.gd" id="4_m2xb2"]
 [ext_resource type="Texture2D" uid="uid://o2fu407r7skw" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Walk.png" id="4_qjxco"]
 [ext_resource type="Script" path="res://Tools/Player/player.gd" id="5_v07jb"]
 [ext_resource type="Texture2D" uid="uid://biusqs1gt7jc4" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Dmg.png" id="6_5m2pn"]
 [ext_resource type="Texture2D" uid="uid://cadwbgcjf25wl" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/SoulDie.png" id="7_3sr4p"]
+[ext_resource type="Texture2D" uid="uid://br3ad2wifvgu2" path="res://Assets/Minifantasy_Dungeon_Assets/Characters/Human/Spell.png" id="7_6u6th"]
 [ext_resource type="Texture2D" uid="uid://bnap7lcnqe277" path="res://Assets/Minifantasy_Weapons_Assets/Slash_Attacks/_Characters/Slash_Character_human.png" id="7_wsqyt"]
 [ext_resource type="Script" path="res://Tools/DamageSystem/damageDealer.gd" id="8_8fmvo"]
 [ext_resource type="Script" path="res://Tools/InvincibilityManager/invincibilityManager.gd" id="10_ef4up"]
 [ext_resource type="Script" path="res://Tools/KnockBack/knockback.gd" id="11_j7663"]
-[ext_resource type="Script" path="res://Tools/AttackController/attackController.gd" id="12_bx8mr"]
+[ext_resource type="Script" path="res://Tools/KeySequenceRecorder/keySequenceRecorder.gd" id="14_0w1in"]
+[ext_resource type="Script" path="res://Tools/SpellSystem/spellCaster.gd" id="15_27cta"]
+[ext_resource type="Script" path="res://Tools/SpellSystem/sequenceSpellDecoder.gd" id="16_52exo"]
+[ext_resource type="Resource" uid="uid://jtrbqs3x4y4m" path="res://Tools/SpellSystem/Spells/heal10.tres" id="17_f3oq8"]
+[ext_resource type="PackedScene" uid="uid://cgvjmvcru4dfr" path="res://Tools/Targeter/targeter.tscn" id="17_ys7bc"]
+[ext_resource type="Resource" uid="uid://dctmcc743dlf4" path="res://Tools/SpellSystem/Spells/homingMagicProjectile.tres" id="18_le634"]
+[ext_resource type="PackedScene" uid="uid://bjioxiljujgja" path="res://Tools/SpellSystem/spellSequenceVisualizer.tscn" id="18_vkslu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cg8jx"]
 atlas = ExtResource("2_y1qmj")
@@ -626,6 +632,160 @@ tracks/5/keys = {
 "values": [Vector2(0, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_7ixeq"]
+resource_name = "playerSpellCastLeft"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("AtlasTexture_cg8jx"), SubResource("AtlasTexture_cg8jx")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture:atlas")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("7_6u6th"), ExtResource("7_6u6th"), ExtResource("7_6u6th"), ExtResource("7_6u6th")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:texture:region")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(13, 44, 7, 7), Rect2(45, 44, 6, 7), Rect2(77, 44, 6, 7), Rect2(109, 44, 6, 7)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:texture:margin")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Rect2(0, 0, 0, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:centered")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, true]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Sprite2D:offset")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(0, 0), Vector2(-0.47, -0.025), Vector2(-0.44, -0.03), Vector2(-0.525, -0.04)]
+}
+
+[sub_resource type="Animation" id="Animation_2t8b6"]
+resource_name = "playerSpellCastRight"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("AtlasTexture_cg8jx"), SubResource("AtlasTexture_cg8jx")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture:atlas")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("7_6u6th"), ExtResource("7_6u6th"), ExtResource("7_6u6th"), ExtResource("7_6u6th")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:texture:region")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(12, 12, 7, 7), Rect2(44, 12, 7, 7), Rect2(76, 12, 7, 7), Rect2(108, 12, 7, 7)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:texture:margin")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Rect2(0, 0, 0, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:centered")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, true]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Sprite2D:offset")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(0, 0), Vector2(0, -0.025), Vector2(0, -0.03), Vector2(0.065, -0.04)]
+}
+
 [sub_resource type="Animation" id="Animation_8ques"]
 resource_name = "playerWalkLeft"
 length = 0.8
@@ -790,28 +950,33 @@ _data = {
 "playerHurtRight": SubResource("Animation_c77om"),
 "playerIdleLeft": SubResource("Animation_tv8bf"),
 "playerIdleRight": SubResource("Animation_vawk3"),
+"playerSpellCastLeft": SubResource("Animation_7ixeq"),
+"playerSpellCastRight": SubResource("Animation_2t8b6"),
 "playerWalkLeft": SubResource("Animation_8ques"),
 "playerWalkRight": SubResource("Animation_2rc2w")
 }
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ouhqq"]
-size = Vector2(10, 20)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_73h0s"]
-size = Vector2(10, 20)
-
 [node name="Player" groups=["Player"] instance=ExtResource("1_qws5j")]
 script = ExtResource("5_v07jb")
 
-[node name="TopDownEntity2D" parent="." index="0"]
+[node name="Shadow" parent="." index="0"]
+scale = Vector2(0.21875, 0.21875)
+offset = Vector2(-3.5, 2.33333)
+
+[node name="TopDownEntity2D" parent="." index="1"]
 speed = 50.0
 
-[node name="HealthBar" parent="." index="2"]
+[node name="HealthBar" parent="." index="3" groups=["Damagable", "Invisible", "Player"]]
 offset_top = -8.5
 offset_bottom = -3.5
 
-[node name="Sprite2D" parent="." index="3"]
+[node name="Sprite2D" parent="." index="4"]
+position = Vector2(0, -3.5)
 texture = SubResource("AtlasTexture_cg8jx")
+offset = Vector2(0, 0)
+
+[node name="HitBox" parent="." index="5"]
+position = Vector2(0, -3.5)
 
 [node name="AnimationPlayerController" type="AnimationPlayer" parent="." index="6"]
 libraries = {
@@ -819,38 +984,37 @@ libraries = {
 }
 script = ExtResource("3_v4kgf")
 
-[node name="AttackAreaLeft" type="Area2D" parent="." index="7" node_paths=PackedStringArray("owner_body")]
-script = ExtResource("4_m2xb2")
-owner_body = NodePath("..")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackAreaLeft" index="0"]
-position = Vector2(-5, 0)
-shape = SubResource("RectangleShape2D_ouhqq")
-
-[node name="AttackAreaRight" type="Area2D" parent="." index="8" node_paths=PackedStringArray("owner_body")]
-script = ExtResource("4_m2xb2")
-owner_body = NodePath("..")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackAreaRight" index="0"]
-position = Vector2(5, 0)
-shape = SubResource("RectangleShape2D_73h0s")
-
-[node name="Knockback" type="Node2D" parent="." index="9" node_paths=PackedStringArray("entity")]
+[node name="Knockback" type="Node2D" parent="." index="7" node_paths=PackedStringArray("entity")]
 script = ExtResource("11_j7663")
 entity = NodePath("../TopDownEntity2D")
 
-[node name="DamageDealer" type="Node2D" parent="." index="10"]
+[node name="DamageDealer" type="Node2D" parent="." index="8"]
 script = ExtResource("8_8fmvo")
 
-[node name="InvincibilityManager" type="Node2D" parent="." index="11" node_paths=PackedStringArray("health", "sprite")]
+[node name="InvincibilityManager" type="Node2D" parent="." index="9" node_paths=PackedStringArray("health", "sprite")]
 script = ExtResource("10_ef4up")
 health = NodePath("../DamageReceiver")
 sprite = NodePath("../Sprite2D")
 
-[node name="AttackController" type="Node2D" parent="." index="12" node_paths=PackedStringArray("attack_area", "damage_dealer")]
-script = ExtResource("12_bx8mr")
-attack_area = NodePath("../AttackAreaLeft")
-damage_dealer = NodePath("../DamageDealer")
+[node name="KeySequenceRecoder" type="Node2D" parent="." index="11"]
+script = ExtResource("14_0w1in")
+input_actions_to_react = Array[String](["up", "down", "left", "right"])
+
+[node name="SpellCaster" type="Node2D" parent="." index="12"]
+script = ExtResource("15_27cta")
+
+[node name="SequenceDecoder" type="Node2D" parent="." index="13"]
+script = ExtResource("16_52exo")
+keycodes = {
+"down down": ExtResource("17_f3oq8"),
+"up up": ExtResource("18_le634")
+}
+
+[node name="Targeter" parent="." index="14" instance=ExtResource("17_ys7bc")]
+distance = 75
+
+[node name="SpellSequenceVisualizer" parent="." index="16" node_paths=PackedStringArray("key_sequence_recoder") instance=ExtResource("18_vkslu")]
+key_sequence_recoder = NodePath("../KeySequenceRecoder")
 
 [connection signal="damage_received" from="DamageReceiver" to="." method="_on_damage_received"]
 [connection signal="damage_received" from="DamageReceiver" to="Knockback" method="on_damage_taken"]

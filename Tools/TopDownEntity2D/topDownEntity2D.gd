@@ -15,8 +15,9 @@ const VELOCITY_FLOOR = 5
 @export var body: CharacterBody2D 
 @export var direction: Vector2
 @export var speed: float = 50
-@export var impulse_size: float = 10
+@export var impulse_size: float = 100
 @export var is_static: bool = false
+@export var stun_stand_still_time = .5
 
 ## Smoothness of velocity change. A higher number means less smoothing.
 @export var velocity_lerp_weight: float = 15
@@ -39,9 +40,14 @@ var is_moving: bool:
 var _impulses: Array[Vector2] = []
 # endregion
 
+var _frozen_timer : Timer
+	
 
 # region optional built-in virtual _init method
 func _ready():
+	_frozen_timer = Timer.new()
+	_frozen_timer.one_shot = true
+	add_child(_frozen_timer)
 	# Change motion mode from platformer to top down
 	body.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 # endregion
@@ -64,13 +70,25 @@ func teleport(p_position: Vector2):
 ## Adds an impulse to the body
 func add_impulse(impulse: Vector2):
 	_impulses.append(impulse)
+
+
+func stun():
+	_frozen_timer.start(stun_stand_still_time)
+
+
+func stop():
+	direction = Vector2.ZERO
 # endregion
 
 
 # region private methods
 func _apply_new_velocity(delta_time):
 	if not is_static:
-		var target_velocity = speed * direction.normalized()
+		var target_velocity
+		if _frozen_timer.time_left != 0:
+			target_velocity = Vector2.ZERO
+		else:
+			target_velocity = speed * direction.normalized()
 		# The lerping needs to be framerate independent https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
 		body.velocity = body.velocity.lerp(target_velocity, 1 - exp(delta_time * -velocity_lerp_weight))
 		if navigation_agent:

@@ -1,11 +1,11 @@
 class_name Player extends CharacterBody2D
 
 const PAUSE_REGENERATION_HURT_TIME = 5
-const BASE_ATTACK_AMOUNT = 10
-const INVINSIBILITY_TIME = 3
+const BASE_ATTACK_AMOUNT = 50 
+const INVINSIBILITY_TIME = .5
 
 enum State {PASSIVE,
-			ATTACKING,
+			SPELLCASTING,
 			HURT,
 			DYING,
 			DEAD,
@@ -19,14 +19,15 @@ enum Direction {
 
 @onready var player_entity: TopDownEntity2D = $TopDownEntity2D
 @onready var animation_player_controller: AnimationPlayerController = $AnimationPlayerController
-@onready var attack_area_left: AttackArea = $AttackAreaLeft
-@onready var attack_area_right: AttackArea = $AttackAreaRight
 @onready var health: DamageReceiver = $DamageReceiver
 @onready var hitbox: CollisionShape2D = $HitBox
 @onready var invincibility_manager: InvincibilityManager = $InvincibilityManager
 @onready var knockback: Knockback = $Knockback
-@onready var attack_controller: AttackController = $AttackController
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var spell_caster: SpellCaster = $SpellCaster
+@onready var key_sequence_recoder: keySequenceRecoder = $KeySequenceRecoder
+@onready var sequence_decoder: SequenceDecoder = $SequenceDecoder
+@onready var targeter: Targeter = $Targeter
 
 var _active_state = State.PASSIVE
 var _last_movement_direction = Direction.LEFT
@@ -38,7 +39,6 @@ func _ready():
 
 
 func _process(_delta):
-	_set_active_attack_area()
 	_state_process()
 	
 
@@ -51,22 +51,44 @@ func _state_process():
 			elif _damaged_flag:
 				_enter_state(State.HURT)
 				return
-			elif Input.is_action_just_pressed("attack") and attack_controller.can_attack():
-				_enter_state(State.ATTACKING)
+			elif key_sequence_recoder.is_inputing_sequence():
+				_enter_state(State.SPELLCASTING)
 				return
+			if Input.is_action_just_pressed("switch target"):
+				targeter.select_next_target()
 			_movement()
 			return
 		State.HURT:
 			_enter_state(State.PASSIVE)
 			return
-		State.ATTACKING:
+		State.SPELLCASTING:
 			if health.amount == 0:
 				_enter_state(State.DYING)
 				return
 			elif _damaged_flag:
 				_enter_state(State.HURT)
 				return
-			elif not attack_controller.is_attacking():
+			# Cast spell
+			elif Input.is_action_just_pressed("attack"):
+				spell_caster.target = targeter.target
+				var sequence = key_sequence_recoder.get_sequence()
+				var spell = sequence_decoder.decode_keycode(sequence)
+				if spell == null:
+					_enter_state(State.PASSIVE)
+					return
+				spell_caster.cast(spell)
+				if _last_movement_direction == Direction.LEFT:
+					animation_player_controller.play_overlay_animation("playerAttackLeft", 1)
+				elif _last_movement_direction == Direction.RIGHT:
+					animation_player_controller.play_overlay_animation("playerAttackRight", 1)
+				_enter_state(State.PASSIVE)
+				return
+			elif not key_sequence_recoder.is_inputing_sequence():
+				_enter_state(State.PASSIVE)
+				return
+			
+			# Stop casting and move
+			elif Input.get_vector("maneuver_left", "maneuver_right", "maneuver_up", "maneuver_down") != Vector2.ZERO:
 				_enter_state(State.PASSIVE)
 			return
 		State.DYING:
@@ -80,7 +102,7 @@ func _enter_state(state: State):
 	_active_state = state
 
 	#For every state
-	_reset_movement()
+	player_entity.stop()
 
 	match _active_state:
 		State.PASSIVE:
@@ -89,9 +111,8 @@ func _enter_state(state: State):
 			_damaged_flag = false
 			invincibility_manager.activate_invincibility_for_time(INVINSIBILITY_TIME)
 			return
-		State.ATTACKING:
-			attack_controller.attack(BASE_ATTACK_AMOUNT, true, AttackController.AttackType.ALL)
-			_animate_attack()
+		State.SPELLCASTING:
+			_animate_spellcast()
 			return
 		State.DYING:
 			return
@@ -104,7 +125,8 @@ func _exit_state(state: State):
 	match state:
 		State.PASSIVE:
 			return
-		State.ATTACKING:
+		State.SPELLCASTING:
+			key_sequence_recoder.clear()
 			return
 		State.DYING:
 			return
@@ -118,13 +140,13 @@ func ressurect():
 
 func _movement():
 	# Set direction
-	var movement_direction = Input.get_vector("left", "right", "up", "down")
+	var movement_direction = Input.get_vector("maneuver_left", "maneuver_right", "maneuver_up", "maneuver_down")
 	player_entity.direction = movement_direction
 
 	# Get direction for animation
-	if Input.is_action_pressed("left"):
+	if Input.is_action_pressed("maneuver_left"):
 		_last_movement_direction = Direction.LEFT
-	elif Input.is_action_pressed("right"):
+	elif Input.is_action_pressed("maneuver_right"):
 		_last_movement_direction = Direction.RIGHT
 
 	# Animate
@@ -145,18 +167,8 @@ func _on_damage_received(_amount: float, p_knockback: bool, damage_dealer: Damag
 	_damaged_flag = true
 
 
-func _reset_movement():
-	player_entity.direction = Vector2.ZERO
-
-
-func _animate_attack():
+func _animate_spellcast():
 	if _last_movement_direction == Direction.LEFT:
-		animation_player_controller.play_overlay_animation("playerAttackLeft", 1)
+		animation_player_controller.play_base_animation("playerSpellCastLeft")
 	else:
-		animation_player_controller.play_overlay_animation("playerAttackRight", 1)
-
-func _set_active_attack_area():
-	if _last_movement_direction == Direction.LEFT:
-		attack_controller.attack_area = attack_area_left
-	else:
-		attack_controller.attack_area = attack_area_right
+		animation_player_controller.play_base_animation("playerSpellCastRight")

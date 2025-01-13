@@ -1,4 +1,4 @@
-class_name AttackArea extends Area2D
+class_name 	AttackArea extends Area2D
 
 @export var owner_body: CollisionObject2D
 
@@ -34,5 +34,5 @@ func attack_all_bodies_in_group(amount, knockback, damage_dealer, group = "Damag
 			damage_dealer.deal_damage(amount, knockback, target_damage_receiver)
 	return bodies_in_group
 
-func is_body_in_attack_range(body):
+func is_body_in_attack_range(body: Node2D):
 	return body in get_overlapping_bodies()

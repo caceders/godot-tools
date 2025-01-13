@@ -103,3 +103,4 @@ func enable():
 
 func disable():
 	enabled = false
+	entity.direction = Vector2.ZERO

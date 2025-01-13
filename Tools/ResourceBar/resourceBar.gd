@@ -3,7 +3,8 @@
 extends Control
 
 const RESOURCE_BAR_OFFSET = Vector2(0, -5)  # Offset above the sprite in pixels
-const POSITIONAL_CORRECTION_LERP = 4
+const POSITIONAL_CORRECTION_LERP = 20
+const BAR_FILL_CHANGE_PERCENTAGE_PER_SECOND = 300
 
 enum ResourceBarType{
 	SMALL_RED,
@@ -42,8 +43,8 @@ func _process(delta):
 					visible = true
 				
 				if resource.amount < bar.value:
-					bar.value -= 100 * delta
+					bar.value -= BAR_FILL_CHANGE_PERCENTAGE_PER_SECOND * (bar.max_value/100) * delta
 				elif resource.amount > bar.value:
-					bar.value += 100 * delta
+					bar.value += BAR_FILL_CHANGE_PERCENTAGE_PER_SECOND * (bar.max_value/100) * delta
 
 	

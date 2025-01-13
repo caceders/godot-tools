@@ -1,6 +1,6 @@
 class_name InvincibilityManager extends Node2D
 
-const OPACITY_CHANGE_TIME = .5
+const OPACITY_CHANGE_TIME = .1
 
 @export var health: DamageReceiver
 @export var sprite: Sprite2D
@@ -17,14 +17,14 @@ func _ready():
 func _process(delta):
 	if _invincible:
 		if _fading_out:
-			var new_modulate_a = sprite.modulate.a - delta/0.5
+			var new_modulate_a = sprite.modulate.a - (delta)/(OPACITY_CHANGE_TIME)
 			if new_modulate_a < 0: 
 				new_modulate_a = 0
 				_fading_out = false
 			sprite.modulate.a = new_modulate_a
 		
 		else:
-			var new_modulate_a = sprite.modulate.a + delta/0.5
+			var new_modulate_a = sprite.modulate.a + (delta)/(OPACITY_CHANGE_TIME)
 			if new_modulate_a > 1: 
 				new_modulate_a = 1
 				_fading_out = true
@@ -38,6 +38,7 @@ func activate_invincibility_for_time(time):
 	await _invincibility_timer.timeout
 	_invincible = false
 	health.ignore_all_damage = false
+	sprite.modulate.a = 1
 
 
 func activate_invincibility():
